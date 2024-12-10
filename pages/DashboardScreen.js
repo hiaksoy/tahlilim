@@ -1,25 +1,25 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { auth } from '../configs/firebase_config'; // Firebase auth modülünü içe aktar
-import { signOut } from 'firebase/auth'; // Çıkış yapmak için gerekli fonksiyon
-import { useNavigation } from '@react-navigation/native'; // Yönlendirme için gerekli
+import { auth } from '../configs/firebase_config'; 
+import { signOut } from 'firebase/auth'; 
+import { useNavigation } from '@react-navigation/native'; 
 
 const DashboardScreen = () => {
-  // Firebase'den mevcut kullanıcı bilgilerini al
   const user = auth.currentUser;
-  
   const navigation = useNavigation();
-
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       Alert.alert('Başarılı Çıkış', 'Çıkış yapıldı!');
-      navigation.navigate('Login'); // Giriş sonrası yönlendirme
-      // Burada yönlendirme yapabilirsiniz, örneğin login sayfasına
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Çıkış Hatası', error.message || 'Çıkış yapılamadı.');
     }
+  };
+
+  const goToGuides = () => {
+    navigation.navigate('Guides');
   };
 
   return (
@@ -30,7 +30,11 @@ const DashboardScreen = () => {
           {`Giriş Yapmış Kullanıcı: ${user.email}`}
         </Text>
       )}
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
+      <TouchableOpacity style={styles.button} onPress={goToGuides}>
+        <Text style={styles.buttonText}>Kılavuzlar Sayfasına Git</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.buttonText}>Çıkış Yap</Text>
       </TouchableOpacity>
     </View>
@@ -48,7 +52,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 40,
+    marginBottom: 20,
     color: '#333',
   },
   email: {
@@ -59,11 +63,19 @@ const styles = StyleSheet.create({
   button: {
     width: '80%',
     height: 50,
+    backgroundColor: '#007BFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  logoutButton: {
+    width: '80%',
+    height: 50,
     backgroundColor: '#ff4d4f',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
-    marginTop: 20,
   },
   buttonText: {
     color: '#fff',

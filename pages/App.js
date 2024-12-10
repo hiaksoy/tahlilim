@@ -4,13 +4,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './LoginScreen'; // LoginScreen'i import edin.
 import DashboardScreen from './DashboardScreen'; // DashboardScreen'i import edin.
+import  GuidesScreen  from './GuidesScreen'; // GuidesScreen ve EditGuideScreen'i import edin.
 
 const Stack = createStackNavigator();
 
 function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on sdgdsgdsyour app!</Text>
+      <Text>Open up App.js to start working on your app!</Text>
       <Button 
         title="Login Sayfasına Git"
         onPress={() => navigation.navigate('Login')}
@@ -26,6 +27,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Guides" component={GuidesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
