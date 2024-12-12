@@ -18,6 +18,19 @@ export const getGuides = async () => {
   return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 };
 
+
+// ID'ye Göre Kılavuzu Getir
+export const getGuideById = async (id) => {
+  const guideRef = doc(db, 'Kılavuzlar', id);
+  const snapshot = await getDoc(guideRef);
+
+  if (snapshot.exists()) {
+    return { ...snapshot.data(), id: snapshot.id };
+  } else {
+    throw new Error('Kılavuz bulunamadı.');
+  }
+};
+
 export const deleteGuide = async (id) => {
   await deleteDoc(doc(db, 'Kılavuzlar', id));
 };

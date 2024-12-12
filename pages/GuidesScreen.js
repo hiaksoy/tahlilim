@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { addGuide, getGuides, deleteGuide } from '../services/GuidesService';
+import { useNavigation } from '@react-navigation/native'; 
+
 
 // SubTable bileşeni
 const SubTable = ({ tableName }) => {
@@ -10,6 +12,7 @@ const SubTable = ({ tableName }) => {
     'Age Group', 'Number', 'Geometric mean ± SD', 'Mean ± SD', 'Min–max', '95% confidence interval'
   ]);
   const [rows, setRows] = useState([]);
+  
 
   const handleAddAgeGroup = () => {
     if (!newAgeGroup) {
@@ -87,6 +90,7 @@ const SubTable = ({ tableName }) => {
 };
 
 const GuidesScreen = () => {
+  const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [guides, setGuides] = useState([]);
@@ -175,12 +179,24 @@ const GuidesScreen = () => {
               </View>
             )}
 
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDeleteGuide(item.id)}
-            >
-              <Text style={styles.deleteButtonText}>Sil</Text>
-            </TouchableOpacity>
+
+              <View style={styles.actionButtons}>
+              <TouchableOpacity
+      style={styles.editButton}
+      onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}
+    >
+      <Text style={styles.editButtonText}>Düzenle</Text>
+    </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteGuide(item.id)}
+                >
+                  <Text style={styles.deleteButtonText}>Sil</Text>
+                </TouchableOpacity>
+              </View>
+
+ 
           </View>
         )}
       />
@@ -243,18 +259,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
   },
-  deleteButton: {
-    backgroundColor: '#ff4d4f',
+  actionButtons: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  
+  editButton: {
+    flex: 7,  // %70 genişlik
+    backgroundColor: '#28a745',  // Yeşil
     padding: 10,
     borderRadius: 5,
-    marginTop: 5,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 5,  // Aralarındaki boşluk
   },
-  deleteButtonText: {
+  
+  editButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
   },
+  
+  deleteButton: {
+    flex: 3,  // %30 genişlik
+    backgroundColor: '#ff4d4f',  // Kırmızı
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
   tableContainer: {
     marginBottom: 20,
     padding: 10,
