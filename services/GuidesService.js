@@ -1,5 +1,5 @@
 import { db } from '../configs/firebase_config';
-import { collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, deleteDoc, getDoc } from 'firebase/firestore';
 
 export const addGuide = async (title, description) => {
   const guideRef = doc(collection(db, 'Kılavuzlar'));
@@ -8,8 +8,8 @@ export const addGuide = async (title, description) => {
   // Alt koleksiyonları oluştur
   const subCollections = ['IgA', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4'];
   for (const subCol of subCollections) {
-    const subRef = doc(collection(guideRef, subCol), 'default');
-    await setDoc(subRef, { createdAt: new Date() });
+    const subRef = doc(collection(guideRef, 'Degerler'));
+    await setDoc(subRef, { id: subRef.id , title: subCol });
   }
 };
 
@@ -24,11 +24,24 @@ export const getGuideById = async (id) => {
   const guideRef = doc(db, 'Kılavuzlar', id);
   const snapshot = await getDoc(guideRef);
 
-  if (snapshot.exists()) {
-    return { ...snapshot.data(), id: snapshot.id };
-  } else {
+  if (!snapshot.exists()) {
     throw new Error('Kılavuz bulunamadı.');
   }
+
+  const guideData = { ...snapshot.data(), id: snapshot.id, subTables: {} };
+
+  // Alt koleksiyonları alma
+  const subCollections = ['IgA', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4'];
+
+  for (const subCol of subCollections) {
+    const subSnapshot = await getDocs(collection(guideRef, subCol));
+    guideData.subTables[subCol] = subSnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+    }));
+  }
+
+  return guideData;
 };
 
 export const deleteGuide = async (id) => {

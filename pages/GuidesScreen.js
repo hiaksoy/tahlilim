@@ -4,99 +4,15 @@ import { addGuide, getGuides, deleteGuide } from '../services/GuidesService';
 import { useNavigation } from '@react-navigation/native'; 
 
 
-// SubTable bileşeni
-const SubTable = ({ tableName }) => {
-  const [ageGroups, setAgeGroups] = useState([]);
-  const [newAgeGroup, setNewAgeGroup] = useState('');
-  const [columns, setColumns] = useState([
-    'Age Group', 'Number', 'Geometric mean ± SD', 'Mean ± SD', 'Min–max', '95% confidence interval'
-  ]);
-  const [rows, setRows] = useState([]);
-  
 
-  const handleAddAgeGroup = () => {
-    if (!newAgeGroup) {
-      Alert.alert("Uyarı", "Yaş grubu boş olamaz.");
-      return;
-    }
-    setAgeGroups([...ageGroups, newAgeGroup]);
-    setNewAgeGroup('');
-  };
-
-  const handleAddRow = () => {
-    const newRow = columns.reduce((acc, column) => {
-      acc[column] = ''; // Boş değerlerle başlat
-      return acc;
-    }, {});
-    setRows([...rows, newRow]);
-  };
-
-  const handleEditRow = (rowIndex, columnName, value) => {
-    const updatedRows = [...rows];
-    updatedRows[rowIndex][columnName] = value;
-    setRows(updatedRows);
-  };
-
-  return (
-    <View style={styles.tableContainer}>
-      <Text style={styles.tableTitle}>{tableName}</Text>
-      
-      {/* Yaş Grubu Ekle */}
-      <View style={styles.addRowContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Yeni Yaş Grubu"
-          value={newAgeGroup}
-          onChangeText={setNewAgeGroup}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddAgeGroup}>
-          <Text style={styles.addButtonText}>Ekle</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Yaş Gruplarını Göster */}
-      <FlatList
-        data={ageGroups}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Text style={styles.ageGroup}>{item}</Text>
-        )}
-      />
-
-      {/* Tablo Sütunları ve Satırları */}
-      <TouchableOpacity style={styles.addButton} onPress={handleAddRow}>
-        <Text style={styles.addButtonText}>Satır Ekle</Text>
-      </TouchableOpacity>
-
-      <FlatList
-        data={rows}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item, index }) => (
-          <View style={styles.row}>
-            {columns.map((column) => (
-              <TextInput
-                key={column}
-                style={styles.cell}
-                placeholder={column}
-                value={item[column]}
-                onChangeText={(value) => handleEditRow(index, column, value)}
-              />
-            ))}
-          </View>
-        )}
-      />
-    </View>
-  );
-};
 
 const GuidesScreen = () => {
   const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [guides, setGuides] = useState([]);
-  const [expandedGuideId, setExpandedGuideId] = useState(null);
 
-  const subTables = ['IgA', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4'];
+
 
   const fetchGuides = async () => {
     try {
@@ -133,9 +49,7 @@ const GuidesScreen = () => {
     }
   };
 
-  const toggleExpand = (id) => {
-    setExpandedGuideId(expandedGuideId === id ? null : id);
-  };
+
 
   useEffect(() => {
     fetchGuides();
@@ -166,37 +80,26 @@ const GuidesScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.guideItem}>
-            <TouchableOpacity onPress={() => toggleExpand(item.id)}>
+          
               <Text style={styles.guideTitle}>{item.title}</Text>
               <Text style={styles.guideDescription}>{item.description}</Text>
-            </TouchableOpacity>
+         
+            <View style={styles.actionButtons}>
 
-            {expandedGuideId === item.id && (
-              <View style={styles.subTablesContainer}>
-                {subTables.map((sub, index) => (
-                  <SubTable key={index} tableName={sub} />
-                ))}
-              </View>
-            )}
-
-
-              <View style={styles.actionButtons}>
               <TouchableOpacity
-      style={styles.editButton}
-      onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}
-    >
-      <Text style={styles.editButtonText}>Düzenle</Text>
-    </TouchableOpacity>
+                style={styles.editButton}
+                onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}>
+                <Text style={styles.editButtonText}>Düzenle</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteGuide(item.id)}
-                >
-                  <Text style={styles.deleteButtonText}>Sil</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDeleteGuide(item.id)}>
+                <Text style={styles.deleteButtonText}>Sil</Text>
+              </TouchableOpacity>
 
- 
+            </View>
+
           </View>
         )}
       />
