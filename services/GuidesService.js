@@ -31,7 +31,7 @@ export const getGuideById = async (id) => {
   const guideData = { ...snapshot.data(), id: snapshot.id, subTables: {} };
 
   // Alt koleksiyonları alma
-  const subCollections = ['IgA', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4'];
+  const subCollections = ['IgA.', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4'];
 
   for (const subCol of subCollections) {
     const subSnapshot = await getDocs(collection(guideRef, subCol));
