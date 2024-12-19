@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
 import { getGuideById, updateGuide, getSubTables, addSubTable, deleteSubTable } from '../services/GuidesService';
-import { addRef} from '../services/RefsService';
 
 const EditGuideScreen = ({ route, navigation }) => {
-  const { guideId } = route.params;
+  const { refId } = route.params;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -17,8 +16,8 @@ const EditGuideScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchGuide = async () => {
       try {
-        const guide = await getGuideById(guideId);
-        const subTables = await getSubTables(guideId);
+        const guide = await getGuideById(refId);
+        const subTables = await getSubTables(refId);
         setTitle(guide.title);
         setDescription(guide.description);
         setSubTables(subTables);  // Alt tabloları ayarla
@@ -27,12 +26,12 @@ const EditGuideScreen = ({ route, navigation }) => {
       }
     };
     fetchGuide();
-  }, [guideId]);
+  }, [refId]);
 
   const fetchGuide = async () => {
     try {
-      const guide = await getGuideById(guideId);
-      const subTables = await getSubTables(guideId);
+      const guide = await getGuideById(refId);
+      const subTables = await getSubTables(refId);
       setTitle(guide.title);
       setDescription(guide.description);
       setSubTables(subTables);  // Alt tabloları ayarla
@@ -47,7 +46,7 @@ const EditGuideScreen = ({ route, navigation }) => {
       return;
     }
     try {
-      await updateGuide(guideId, { title, description });
+      await updateGuide(refId, { title, description });
       Alert.alert('Başarılı', 'Kılavuz güncellendi!');
       navigation.goBack();
     } catch (error) {
@@ -61,7 +60,7 @@ const EditGuideScreen = ({ route, navigation }) => {
       return;
     }
     try {
-      await addRef(guideId, { ref });
+      await addSubTable(refId, 'Degerler', { ref });
       Alert.alert('Başarılı', 'Değer eklendi!');
       setRef('');
       setIsValueFormVisible(false); // Değer ekleme formunu gizle
@@ -73,7 +72,7 @@ const EditGuideScreen = ({ route, navigation }) => {
 
   const handleDeleteGuide = async (id) => {
     try {
-      await deleteSubTable(guideId, id);
+      await deleteSubTable(refId, id);
       fetchGuide();
       Alert.alert('Başarılı', 'Değer silindi!');
     } catch (error) {
@@ -83,8 +82,8 @@ const EditGuideScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header,isGuideFormVisible ? {borderBottomLeftRadius:0,borderBottomRightRadius:0} : {borderBottomLeftRadius:15,borderBottomRightRadius:15}]}>
-        <Text style={styles.title}>Kılavuzu Düzenle</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Kılavuz Düzenle</Text>
         {/* Kılavuz Düzenle yuvarlak butonu */}
         <TouchableOpacity
           style={[styles.circleButton, styles.guideButton]}
@@ -96,13 +95,7 @@ const EditGuideScreen = ({ route, navigation }) => {
 
       {/* Kılavuz düzenleme formu */}
       {isGuideFormVisible && (
-        <View style={{backgroundColor:'lightgrey'
-          ,paddingTop:20
-          ,paddingHorizontal:16,
-          paddingBottom:20,
-          borderBottomLeftRadius:15,
-          borderBottomRightRadius:15,
-        }}>
+        <>
           <TextInput
             style={styles.input}
             placeholder="Başlık"
@@ -120,7 +113,7 @@ const EditGuideScreen = ({ route, navigation }) => {
           <TouchableOpacity style={styles.saveButton} onPress={handleUpdateGuide}>
             <Text style={styles.saveButtonText}>Güncelle</Text>
           </TouchableOpacity>
-        </View>
+        </>
       )}
 
       <View style={styles.valueSection}>
@@ -159,7 +152,7 @@ const EditGuideScreen = ({ route, navigation }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}
+                onPress={() => navigation.navigate('EditGuide', { refId: item.id })}
               >
                 <Text style={styles.editButtonText}>Düzenle</Text>
               </TouchableOpacity>
@@ -188,17 +181,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', // Yatayda hizalama
     justifyContent: 'space-between', // Başlık ile buton arasında boşluk bırak
     alignItems: 'center', // Dikeyde ortalama
-    backgroundColor:'lightgrey',
-    borderRadius:15,
-
-    padding:20
-  
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     flex: 1, // Başlık ile buton arasında yer paylaşımı
-
   },
   input: {
     height: 50,

@@ -35,16 +35,12 @@ export const getSubTables = async (guideId) => {
   }
 };
 
-  // const guideRef = doc(db, 'Kılavuzlar', guideId);
-  // const snapshot = await getDocs(collection(guideRef, subTable));
-  // return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 
 
 export const getGuides = async () => {
   const snapshot = await getDocs(collection(db, 'Kılavuzlar'));
   return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 };
-
 
 // ID'ye Göre Kılavuzu Getir
 export const getGuideById = async (id) => {
@@ -56,17 +52,6 @@ export const getGuideById = async (id) => {
   }
 
   const guideData = { ...snapshot.data(), id: snapshot.id, subTables: {} };
-
-  // Alt koleksiyonları alma
-  const subCollections = ['IgA', 'IgM', 'IgG', 'IgG1', 'IgG2', 'IgG3', 'IgG4'];
-
-  for (const subCol of subCollections) {
-    const subSnapshot = await getDocs(collection(guideRef, subCol));
-    guideData.subTables[subCol] = subSnapshot.docs.map((doc) => ({
-      ...doc.data(),
-      id: doc.id,
-    }));
-  }
 
   return guideData;
 };
