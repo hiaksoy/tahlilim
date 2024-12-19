@@ -29,7 +29,8 @@ const GuidesScreen = () => {
       return;
     }
     try {
-      await addGuide(title, description);
+      const Kılavuzlar = 'Kılavuzlar';
+      await addGuide(title, description, Kılavuzlar);
       setTitle('');
       setDescription('');
       fetchGuides();

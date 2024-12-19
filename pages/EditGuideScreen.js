@@ -1,22 +1,25 @@
 // EditGuideScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
-import { getGuideById, updateGuide } from '../services/GuidesService';
+import { getGuideById, updateGuide, getSubTables, addSubTable, deleteSubTable } from '../services/GuidesService';
 
 const EditGuideScreen = ({ route, navigation }) => {
   const { guideId } = route.params;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [ref, setRef] = useState('');
+
   const [subTables, setSubTables] = useState({});
 
   useEffect(() => {
     const fetchGuide = async () => {
         try {
           const guide = await getGuideById(guideId);
+          const subTables = await getSubTables(guideId);
           setTitle(guide.title);
           setDescription(guide.description);
-          setSubTables(guide.subTables);  // Alt tabloları ayarla
+          setSubTables(subTables);  // Alt tabloları ayarla
         } catch (error) {
           Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
         }
@@ -37,6 +40,31 @@ const EditGuideScreen = ({ route, navigation }) => {
       Alert.alert('Hata', 'Kılavuz güncellenemedi.');
     }
   };
+
+  const handleAddRef = async () => {
+    if (!ref) {
+      Alert.alert('Uyarı', 'Tüm alanları doldurun.');
+      return;
+    }
+    try {
+      await addSubTable(guideId, 'Degerler', { ref });
+      Alert.alert('Başarılı', 'Kılavuz güncellendi!');
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Hata', 'Değer eklenemedi');
+    }
+  };
+
+    const handleDeleteGuide = async (guideId,id) => {
+      try {
+        await deleteSubTable(guideId,id);
+        // fetchGuide();
+        Alert.alert('Başarılı', 'Kılavuz silindi!');
+      } catch (error) {
+        Alert.alert('Hata', error.message || 'Kılavuz silinemedi.');
+      }
+    };
+
   console.log(subTables)
   return (
     <View style={styles.container}>
@@ -55,36 +83,48 @@ const EditGuideScreen = ({ route, navigation }) => {
         onChangeText={setDescription}
       />
 
+    <Text style={styles.title}>Değer Ekle</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Başlık"
+        value={ref}
+        onChangeText={setRef}
+      />
+     <TouchableOpacity style={styles.saveButton} onPress={handleAddRef}>
+        <Text style={styles.saveButtonText}>Değer Ekle</Text>
+      </TouchableOpacity>
+
+
                 <Text style={styles.subtitle}>Alt Tablolar</Text>
                 
-
                 <FlatList
-                data={Object.entries(subTables)}
-                keyExtractor={([item]) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.tableContainer}>
-                    <Text style={styles.tableTitle}>{item}</Text>
-                    
+  data={subTables}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <View style={styles.tableContainer}>
+      <Text style={styles.tableTitle}>{item.ref}</Text>
 
-                    <View style={styles.actionButtons}>
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}
+        >
+          <Text style={styles.editButtonText}>Düzenle</Text>
+        </TouchableOpacity>
 
-                    <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}>
-                    <Text style={styles.editButtonText}>Düzenle</Text>
-                    </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeleteGuide(guideId ,item.id)}
+        >
+          <Text style={styles.deleteButtonText}>Sil</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )}
+/>
 
-                    <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteGuide(item.id)}>
-                    <Text style={styles.deleteButtonText}>Sil</Text>
-                    </TouchableOpacity>
 
-                    </View>
 
-                    </View>
-                )}
-                />
 
 
 
