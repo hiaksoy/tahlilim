@@ -1,19 +1,38 @@
 import { db } from '../configs/firebase_config';
 import { collection, doc, setDoc, getDocs, deleteDoc, getDoc, addDoc } from 'firebase/firestore';
 
+// export const addGuide = async (title, description, colName) => {
+//   const guideRef = doc(collection(db, colName));
+//   await setDoc(guideRef, { id: guideRef.id, title, description });
+
+//   const degerlerRef = collection(guideRef, 'Degerler');
+//   await addDoc(degerlerRef, {});
+// };
+//eski versiyon
+
+// export const addSubTable = async (guideId, subTable, data) => {
+//   const guideRef = doc(db, 'Kılavuzlar', guideId);
+//   const subRef = doc(collection(guideRef, subTable));
+//   await setDoc(subRef, data);
+// };
+//eski versiyon
+
+
+
 export const addGuide = async (title, description, colName) => {
   const guideRef = doc(collection(db, colName));
-  await setDoc(guideRef, { id: guideRef.id, title, description });
 
-  const degerlerRef = collection(guideRef, 'Degerler');
-  await addDoc(degerlerRef, {});
+  // Veriyi 'Degerler' alanıyla birlikte ayarla
+  await setDoc(guideRef, { 
+    id: guideRef.id, 
+    title, 
+    description, 
+    Degerler: {}  // Map türünde boş bir nesne olarak eklenir
+  });
+
+  console.log("Kılavuz eklendi:", guideRef.id);
 };
 
-export const addSubTable = async (guideId, subTable, data) => {
-  const guideRef = doc(db, 'Kılavuzlar', guideId);
-  const subRef = doc(collection(guideRef, subTable));
-  await setDoc(subRef, data);
-};
 
 
 
@@ -48,7 +67,7 @@ export const getGuideById = async (id) => {
   const snapshot = await getDoc(guideRef);
 
   if (!snapshot.exists()) {
-    throw new Error('Kılavuz bulunamadı.');
+    throw new Error('Kılavuz bulunamadıkjkjkjk.');
   }
 
   const guideData = { ...snapshot.data(), id: snapshot.id, subTables: {} };

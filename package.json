@@ -12,6 +12,7 @@
     "@react-native-async-storage/async-storage": "latest",
     "@react-native-firebase/app": "latest",
     "@react-native-firebase/auth": "latest",
+    "@react-native-picker/picker": "^2.10.2",
     "@react-navigation/native": "latest",
     "@react-navigation/stack": "latest",
     "expo": "latest",

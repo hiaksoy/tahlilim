@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
-import { getGuideById, updateGuide, getSubTables, addSubTable, deleteSubTable } from '../services/GuidesService';
-import { addRef} from '../services/RefsService';
+import { getGuideById, updateGuide, getSubTables, deleteSubTable } from '../services/GuidesService';
+// import { addRef, createRef} from '../services/RefsService';
+import { REFS } from '../shared/consts';
+import {Picker} from '@react-native-picker/picker';
+import {createRef ,getAllRefs} from '../services/RefsService2';
 
 const EditGuideScreen = ({ route, navigation }) => {
   const { guideId } = route.params;
@@ -61,13 +64,14 @@ const EditGuideScreen = ({ route, navigation }) => {
       return;
     }
     try {
-      await addRef(guideId, { ref });
+      await createRef(guideId,  ref );
       Alert.alert('Başarılı', 'Değer eklendi!');
       setRef('');
       setIsValueFormVisible(false); // Değer ekleme formunu gizle
       fetchGuide();
     } catch (error) {
       Alert.alert('Hata', 'Değer eklenemedi.');
+      // console.log(error);
     }
   };
 
@@ -137,12 +141,15 @@ const EditGuideScreen = ({ route, navigation }) => {
       {/* Değer ekleme formu */}
       {isValueFormVisible && (
         <View style={styles.formContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Değer Başlığı"
-            value={ref}
-            onChangeText={setRef}
-          />
+        <Picker
+           selectedValue={ref}
+           onValueChange={(itemValue) => setRef(itemValue)}
+           style={styles.input}
+        >
+        {REFS.map((option, index) => (
+          <Picker.Item key={index} label={option} value={option} />
+        ))}
+       </Picker>
           <TouchableOpacity style={styles.saveButton} onPress={handleAddRef}>
             <Text style={styles.saveButtonText}>Değer Ekle</Text>
           </TouchableOpacity>
@@ -159,7 +166,7 @@ const EditGuideScreen = ({ route, navigation }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}
+                onPress={() => navigation.navigate('EditRef', { guideId, refId: item.id })}
               >
                 <Text style={styles.editButtonText}>Düzenle</Text>
               </TouchableOpacity>

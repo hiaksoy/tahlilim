@@ -6,7 +6,7 @@ import LoginScreen from './LoginScreen'; // LoginScreen'i import edin.
 import DashboardScreen from './DashboardScreen'; // DashboardScreen'i import edin.
 import  GuidesScreen  from './GuidesScreen'; // GuidesScreen ve EditGuideScreen'i import edin.
 import EditGuideScreen from './EditGuideScreen';
-
+import EditRefScreen from './EditRefScreen';
 const Stack = createStackNavigator();
 
 function HomeScreen({ navigation }) {
@@ -30,6 +30,7 @@ export default function App() {
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Guides" component={GuidesScreen} />
         <Stack.Screen name="EditGuide" component={EditGuideScreen} />
+        <Stack.Screen name="EditRef" component={EditRefScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

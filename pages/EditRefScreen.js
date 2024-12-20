@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
 import { getGuideById, updateGuide, getSubTables, addSubTable, deleteSubTable } from '../services/GuidesService';
+import { addRef, getRefValues,addRefFields} from '../services/RefsService';
+
 
 const EditGuideScreen = ({ route, navigation }) => {
-  const { refId } = route.params;
+  const { guideId, refId } = route.params;
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [minAge, setMinAge] = useState('');
+  const [maxAge, setMaxAge] = useState('');
+  const [minValue, setMinValue] = useState('');
+  const [maxValue, setMaxValue] = useState('');
   const [ref, setRef] = useState(''); // Değerler eklemek için
 
   const [subTables, setSubTables] = useState({});
@@ -16,10 +20,8 @@ const EditGuideScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchGuide = async () => {
       try {
-        const guide = await getGuideById(refId);
+        // const guide = await getGuideById(refId);
         const subTables = await getSubTables(refId);
-        setTitle(guide.title);
-        setDescription(guide.description);
         setSubTables(subTables);  // Alt tabloları ayarla
       } catch (error) {
         Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
@@ -30,10 +32,8 @@ const EditGuideScreen = ({ route, navigation }) => {
 
   const fetchGuide = async () => {
     try {
-      const guide = await getGuideById(refId);
-      const subTables = await getSubTables(refId);
-      setTitle(guide.title);
-      setDescription(guide.description);
+    //   const guide = await getGuideById(refId);
+      const subTables = await getRefValues(guideId, refId);
       setSubTables(subTables);  // Alt tabloları ayarla
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
@@ -54,13 +54,13 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleAddRef = async () => {
-    if (!ref) {
+  const handleAddRefFields = async () => {
+    if (!minAge || !maxAge || !minValue || !maxValue) {
       Alert.alert('Uyarı', 'Tüm alanları doldurun.');
       return;
     }
     try {
-      await addSubTable(refId, 'Degerler', { ref });
+      await addRefFields(guideId, refId, minAge, maxAge, minValue, maxValue);
       Alert.alert('Başarılı', 'Değer eklendi!');
       setRef('');
       setIsValueFormVisible(false); // Değer ekleme formunu gizle
@@ -96,56 +96,56 @@ const EditGuideScreen = ({ route, navigation }) => {
       {/* Kılavuz düzenleme formu */}
       {isGuideFormVisible && (
         <>
-          <TextInput
-            style={styles.input}
-            placeholder="Başlık"
-            value={title}
-            onChangeText={setTitle}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Açıklama"
-            value={description}
-            onChangeText={setDescription}
-          />
+            <Text style={styles.label}>Yaş Aralığı</Text>
+                <View style={styles.row}>
+                <TextInput
+                    style={[styles.input, styles.halfInput]}
+                    placeholder="minAge"
+                    value={minAge}
+                    onChangeText={setMinAge}
+                    keyboardType="numeric"
+                />
+                <TextInput
+                    style={[styles.input, styles.halfInput]}
+                    placeholder="maxAge"
+                    value={maxAge}
+                    onChangeText={setMaxAge}
+                    keyboardType="numeric"
+                />
+                </View>
 
-          {/* Güncelle Butonu */}
-          <TouchableOpacity style={styles.saveButton} onPress={handleUpdateGuide}>
-            <Text style={styles.saveButtonText}>Güncelle</Text>
+            <Text style={styles.label}>Değer Aralığı</Text>
+                <View style={styles.row}>
+                <TextInput
+                    style={[styles.input, styles.halfInput]}
+                    placeholder="minValue"
+                    value={minValue}
+                    onChangeText={setMinValue}
+                    keyboardType="numeric"
+                />
+                <TextInput
+                    style={[styles.input, styles.halfInput]}
+                    placeholder="maxValue"
+                    value={maxValue}
+                    onChangeText={setMaxValue}
+                    keyboardType="numeric"
+                />
+                </View>
+
+
+          {/* Ekle Butonu */}
+          <TouchableOpacity style={styles.saveButton} onPress={handleAddRefFields}>
+            <Text style={styles.saveButtonText}>Ekle</Text>
           </TouchableOpacity>
         </>
       )}
 
-      <View style={styles.valueSection}>
-        <Text style={styles.title}>Değer Ekle</Text>
-        {/* Değer Ekle yuvarlak butonu */}
-        <TouchableOpacity
-          style={[styles.circleButton, styles.valueButton]}
-          onPress={() => setIsValueFormVisible(!isValueFormVisible)} // Değer ekleme formunu aç/kapat
-        >
-          <Text style={styles.circleButtonText}>+</Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Değer ekleme formu */}
-      {isValueFormVisible && (
-        <View style={styles.formContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Değer Başlığı"
-            value={ref}
-            onChangeText={setRef}
-          />
-          <TouchableOpacity style={styles.saveButton} onPress={handleAddRef}>
-            <Text style={styles.saveButtonText}>Değer Ekle</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       <Text style={styles.subtitle}>Alt Tablolar</Text>
       <FlatList
         data={subTables}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item}
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
             <Text style={styles.tableTitle}>{item.ref}</Text>
@@ -292,6 +292,30 @@ const styles = StyleSheet.create({
   formContainer: {
     marginTop: 20,
   },
+
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  halfInput: {
+    width: '48%',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+  },
+
+
+
+
 });
 
 export default EditGuideScreen;
