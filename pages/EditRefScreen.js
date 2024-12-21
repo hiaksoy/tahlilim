@@ -1,40 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
 import { getGuideById, updateGuide, getSubTables, addSubTable, deleteSubTable } from '../services/GuidesService';
-import { addRef, getRefValues,addRefFields} from '../services/RefsService';
+import { addValuesToRef, getAllRefsWithValues } from '../services/aDegerlerService';
 
 
 const EditGuideScreen = ({ route, navigation }) => {
-  const { guideId, refId } = route.params;
+  const { guideId, refName } = route.params;
 
   const [minAge, setMinAge] = useState('');
   const [maxAge, setMaxAge] = useState('');
   const [minValue, setMinValue] = useState('');
   const [maxValue, setMaxValue] = useState('');
-  const [ref, setRef] = useState(''); // Değerler eklemek için
+  // const [ref, setRef] = useState(''); // Değerler eklemek için
 
-  const [subTables, setSubTables] = useState({});
+  const [allRefValues, setAllRefValues] = useState({});
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false); // Kılavuz düzenleme formunun görünürlüğü
-  const [isValueFormVisible, setIsValueFormVisible] = useState(false); // Değer ekleme formunun görünürlüğü
+  // const [isValueFormVisible, setIsValueFormVisible] = useState(false); // Değer ekleme formunun görünürlüğü
 
   useEffect(() => {
     const fetchGuide = async () => {
       try {
         // const guide = await getGuideById(refId);
-        const subTables = await getSubTables(refId);
-        setSubTables(subTables);  // Alt tabloları ayarla
+        const allRefValues = await getAllRefsWithValues(guideId, refName);
+        setAllRefValues(allRefValues);  // Alt tabloları ayarla
+        console.log(allRefValues);
       } catch (error) {
         Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
       }
     };
     fetchGuide();
-  }, [refId]);
+  }, [refName]);
 
   const fetchGuide = async () => {
     try {
-    //   const guide = await getGuideById(refId);
-      const subTables = await getRefValues(guideId, refId);
-      setSubTables(subTables);  // Alt tabloları ayarla
+      //   const guide = await getGuideById(refId);
+      const allRefValues = await getAllRefsWithValues(guideId, refName);
+      setAllRefValues(allRefValues);  // Alt tabloları ayarla
+      console.log(allRefValues);
+
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
     }
@@ -59,16 +62,28 @@ const EditGuideScreen = ({ route, navigation }) => {
       Alert.alert('Uyarı', 'Tüm alanları doldurun.');
       return;
     }
+
     try {
-      await addRefFields(guideId, refId, minAge, maxAge, minValue, maxValue);
-      Alert.alert('Başarılı', 'Değer eklendi!');
-      setRef('');
-      setIsValueFormVisible(false); // Değer ekleme formunu gizle
-      fetchGuide();
+      // Değer ekleme işlemi
+      await addValuesToRef(guideId, refName, minAge, maxAge, minValue, maxValue);
+
+      // Başarılı ekleme sonrası işlemler
+      Alert.alert('Başarılı', 'Değer eklendi!', [
+        {
+          text: 'Tamam',
+          onPress: () => {
+            setIsGuideFormVisible(false); // formu gizle
+            fetchGuide(); // guide'ı yeniden getir
+          }
+        }
+      ]);
+
     } catch (error) {
+      // Hata durumu
       Alert.alert('Hata', 'Değer eklenemedi.');
     }
   };
+
 
   const handleDeleteGuide = async (id) => {
     try {
@@ -96,41 +111,41 @@ const EditGuideScreen = ({ route, navigation }) => {
       {/* Kılavuz düzenleme formu */}
       {isGuideFormVisible && (
         <>
-            <Text style={styles.label}>Yaş Aralığı</Text>
-                <View style={styles.row}>
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="minAge"
-                    value={minAge}
-                    onChangeText={setMinAge}
-                    keyboardType="numeric"
-                />
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="maxAge"
-                    value={maxAge}
-                    onChangeText={setMaxAge}
-                    keyboardType="numeric"
-                />
-                </View>
+          <Text style={styles.label}>Yaş Aralığı</Text>
+          <View style={styles.row}>
+            <TextInput
+              style={[styles.input, styles.halfInput]}
+              placeholder="minAge"
+              value={minAge}
+              onChangeText={setMinAge}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={[styles.input, styles.halfInput]}
+              placeholder="maxAge"
+              value={maxAge}
+              onChangeText={setMaxAge}
+              keyboardType="numeric"
+            />
+          </View>
 
-            <Text style={styles.label}>Değer Aralığı</Text>
-                <View style={styles.row}>
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="minValue"
-                    value={minValue}
-                    onChangeText={setMinValue}
-                    keyboardType="numeric"
-                />
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="maxValue"
-                    value={maxValue}
-                    onChangeText={setMaxValue}
-                    keyboardType="numeric"
-                />
-                </View>
+          <Text style={styles.label}>Değer Aralığı</Text>
+          <View style={styles.row}>
+            <TextInput
+              style={[styles.input, styles.halfInput]}
+              placeholder="minValue"
+              value={minValue}
+              onChangeText={setMinValue}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={[styles.input, styles.halfInput]}
+              placeholder="maxValue"
+              value={maxValue}
+              onChangeText={setMaxValue}
+              keyboardType="numeric"
+            />
+          </View>
 
 
           {/* Ekle Butonu */}
@@ -144,11 +159,15 @@ const EditGuideScreen = ({ route, navigation }) => {
 
       <Text style={styles.subtitle}>Alt Tablolar</Text>
       <FlatList
-        data={subTables}
-        keyExtractor={(item) => item}
+        data={allRefValues}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
-            <Text style={styles.tableTitle}>{item.ref}</Text>
+            <Text style={styles.tableTitle}>Yaş Aralığı</Text>
+            <Text style={styles.tableValue}>{item.minAge} - {item.maxAge}</Text>
+
+            <Text style={styles.tableTitle}>Referans Değer Aralığı</Text>
+            <Text style={styles.tableValue}>{item.minValue} - {item.maxValue}</Text>
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.editButton}
@@ -167,6 +186,7 @@ const EditGuideScreen = ({ route, navigation }) => {
           </View>
         )}
       />
+
     </View>
   );
 };
@@ -211,9 +231,15 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   tableTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 5,
+    color: '#333',
+    marginBottom: 4, // Başlıkların altına biraz boşluk ekleyin
+  },
+  tableValue: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 12, // Değerler arasına biraz boşluk bırakın
   },
   actionButtons: {
     flexDirection: 'row',

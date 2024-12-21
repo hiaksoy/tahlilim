@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
-import { getGuideById, updateGuide, getSubTables, deleteSubTable } from '../services/GuidesService';
-// import { addRef, createRef} from '../services/RefsService';
 import { REFS } from '../shared/consts';
-import {Picker} from '@react-native-picker/picker';
-import {createRef ,getAllRefs} from '../services/RefsService2';
+import { Picker } from '@react-native-picker/picker';
+import { updateGuide, getGuideById } from '../services/aGuidesService';
+import { addRef, getAllRefs } from '../services/aDegerlerService';
 
 const EditGuideScreen = ({ route, navigation }) => {
   const { guideId } = route.params;
@@ -13,7 +12,7 @@ const EditGuideScreen = ({ route, navigation }) => {
   const [description, setDescription] = useState('');
   const [ref, setRef] = useState(''); // Değerler eklemek için
 
-  const [subTables, setSubTables] = useState({});
+  const [allRefs, setAllRefs] = useState({});
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false); // Kılavuz düzenleme formunun görünürlüğü
   const [isValueFormVisible, setIsValueFormVisible] = useState(false); // Değer ekleme formunun görünürlüğü
 
@@ -21,10 +20,10 @@ const EditGuideScreen = ({ route, navigation }) => {
     const fetchGuide = async () => {
       try {
         const guide = await getGuideById(guideId);
-        const subTables = await getSubTables(guideId);
+        const allRefs = await getAllRefs(guideId);
         setTitle(guide.title);
         setDescription(guide.description);
-        setSubTables(subTables);  // Alt tabloları ayarla
+        setAllRefs(allRefs);  // Alt tabloları ayarla
       } catch (error) {
         Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
       }
@@ -35,10 +34,10 @@ const EditGuideScreen = ({ route, navigation }) => {
   const fetchGuide = async () => {
     try {
       const guide = await getGuideById(guideId);
-      const subTables = await getSubTables(guideId);
+      const allRefs = await getAllRefs(guideId);
       setTitle(guide.title);
       setDescription(guide.description);
-      setSubTables(subTables);  // Alt tabloları ayarla
+      setAllRefs(allRefs);  // Alt tabloları ayarla
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
     }
@@ -50,7 +49,7 @@ const EditGuideScreen = ({ route, navigation }) => {
       return;
     }
     try {
-      await updateGuide(guideId, { title, description });
+      await updateGuide(guideId, title, description);
       Alert.alert('Başarılı', 'Kılavuz güncellendi!');
       navigation.goBack();
     } catch (error) {
@@ -64,7 +63,7 @@ const EditGuideScreen = ({ route, navigation }) => {
       return;
     }
     try {
-      await createRef(guideId,  ref );
+      await addRef(guideId, ref);
       Alert.alert('Başarılı', 'Değer eklendi!');
       setRef('');
       setIsValueFormVisible(false); // Değer ekleme formunu gizle
@@ -87,7 +86,7 @@ const EditGuideScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header,isGuideFormVisible ? {borderBottomLeftRadius:0,borderBottomRightRadius:0} : {borderBottomLeftRadius:15,borderBottomRightRadius:15}]}>
+      <View style={[styles.header, isGuideFormVisible ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }]}>
         <Text style={styles.title}>Kılavuzu Düzenle</Text>
         {/* Kılavuz Düzenle yuvarlak butonu */}
         <TouchableOpacity
@@ -100,12 +99,13 @@ const EditGuideScreen = ({ route, navigation }) => {
 
       {/* Kılavuz düzenleme formu */}
       {isGuideFormVisible && (
-        <View style={{backgroundColor:'lightgrey'
-          ,paddingTop:20
-          ,paddingHorizontal:16,
-          paddingBottom:20,
-          borderBottomLeftRadius:15,
-          borderBottomRightRadius:15,
+        <View style={{
+          backgroundColor: 'lightgrey'
+          , paddingTop: 20
+          , paddingHorizontal: 16,
+          paddingBottom: 20,
+          borderBottomLeftRadius: 15,
+          borderBottomRightRadius: 15,
         }}>
           <TextInput
             style={styles.input}
@@ -141,15 +141,15 @@ const EditGuideScreen = ({ route, navigation }) => {
       {/* Değer ekleme formu */}
       {isValueFormVisible && (
         <View style={styles.formContainer}>
-        <Picker
-           selectedValue={ref}
-           onValueChange={(itemValue) => setRef(itemValue)}
-           style={styles.input}
-        >
-        {REFS.map((option, index) => (
-          <Picker.Item key={index} label={option} value={option} />
-        ))}
-       </Picker>
+          <Picker
+            selectedValue={ref}
+            onValueChange={(itemValue) => setRef(itemValue)}
+            style={styles.input}
+          >
+            {REFS.map((option, index) => (
+              <Picker.Item key={index} label={option} value={option} />
+            ))}
+          </Picker>
           <TouchableOpacity style={styles.saveButton} onPress={handleAddRef}>
             <Text style={styles.saveButtonText}>Değer Ekle</Text>
           </TouchableOpacity>
@@ -158,15 +158,16 @@ const EditGuideScreen = ({ route, navigation }) => {
 
       <Text style={styles.subtitle}>Alt Tablolar</Text>
       <FlatList
-        data={subTables}
+        data={allRefs}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
-            <Text style={styles.tableTitle}>{item.ref}</Text>
+            <Text style={styles.tableTitle}>{item.key}</Text>
+            <Text style={styles.tableTitle}>{item.key}</Text>
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('EditRef', { guideId, refId: item.id })}
+                onPress={() => navigation.navigate('EditRef', { guideId, refName: item.key })}
               >
                 <Text style={styles.editButtonText}>Düzenle</Text>
               </TouchableOpacity>
@@ -195,11 +196,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', // Yatayda hizalama
     justifyContent: 'space-between', // Başlık ile buton arasında boşluk bırak
     alignItems: 'center', // Dikeyde ortalama
-    backgroundColor:'lightgrey',
-    borderRadius:15,
+    backgroundColor: 'lightgrey',
+    borderRadius: 15,
 
-    padding:20
-  
+    padding: 20
+
   },
   title: {
     fontSize: 28,
