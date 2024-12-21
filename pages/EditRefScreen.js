@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
-import { getGuideById, updateGuide, getSubTables, addSubTable, deleteSubTable } from '../services/GuidesService';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList, Switch } from 'react-native';
 import { addValuesToRef, getAllRefsWithValues } from '../services/aDegerlerService';
+import { getGuideById } from '../services/aGuidesService';
 
 
 const EditGuideScreen = ({ route, navigation }) => {
@@ -11,11 +11,12 @@ const EditGuideScreen = ({ route, navigation }) => {
   const [maxAge, setMaxAge] = useState('');
   const [minValue, setMinValue] = useState('');
   const [maxValue, setMaxValue] = useState('');
-  // const [ref, setRef] = useState(''); // Değerler eklemek için
+  const [guide, setGuide] = useState('');
+  const [isYearSelected, setIsYearSelected] = useState(false);
+
 
   const [allRefValues, setAllRefValues] = useState({});
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false); // Kılavuz düzenleme formunun görünürlüğü
-  // const [isValueFormVisible, setIsValueFormVisible] = useState(false); // Değer ekleme formunun görünürlüğü
 
   useEffect(() => {
     const fetchGuide = async () => {
@@ -23,7 +24,8 @@ const EditGuideScreen = ({ route, navigation }) => {
         // const guide = await getGuideById(refId);
         const allRefValues = await getAllRefsWithValues(guideId, refName);
         setAllRefValues(allRefValues);  // Alt tabloları ayarla
-        console.log(allRefValues);
+        const guide = await getGuideById(guideId);
+        setGuide(guide);
       } catch (error) {
         Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
       }
@@ -36,7 +38,7 @@ const EditGuideScreen = ({ route, navigation }) => {
       //   const guide = await getGuideById(refId);
       const allRefValues = await getAllRefsWithValues(guideId, refName);
       setAllRefValues(allRefValues);  // Alt tabloları ayarla
-      console.log(allRefValues);
+      console.log(guide.base);
 
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
@@ -64,8 +66,28 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
 
     try {
-      // Değer ekleme işlemi
-      await addValuesToRef(guideId, refName, minAge, maxAge, minValue, maxValue);
+      let finalMinValue = minValue;
+      let finalMaxValue = maxValue;
+
+      // Eğer yıl seçili ise, minAge ve maxAge'i 12 ile çarp
+      const adjustedMinAge = isYearSelected ? parseFloat(minAge) * 12 : parseFloat(minAge);
+      const adjustedMaxAge = isYearSelected ? parseFloat(maxAge) * 12 : parseFloat(maxAge);
+
+      // guide.base değerine göre işlem yap
+      if (guide.base === 'Geometric mean ± SD' || guide.base === 'Mean ± SD') {
+        finalMinValue = parseFloat(minValue) - parseFloat(maxValue);
+        finalMaxValue = parseFloat(minValue) + parseFloat(maxValue);
+      }
+
+      // Değerleri gönder
+      await addValuesToRef(
+        guideId,
+        refName,
+        adjustedMinAge.toString(),  // Ay cinsinden gönder
+        adjustedMaxAge.toString(),  // Ay cinsinden gönder
+        finalMinValue,
+        finalMaxValue
+      );
 
       // Başarılı ekleme sonrası işlemler
       Alert.alert('Başarılı', 'Değer eklendi!', [
@@ -74,15 +96,15 @@ const EditGuideScreen = ({ route, navigation }) => {
           onPress: () => {
             setIsGuideFormVisible(false); // formu gizle
             fetchGuide(); // guide'ı yeniden getir
-          }
-        }
+          },
+        },
       ]);
-
     } catch (error) {
       // Hata durumu
       Alert.alert('Hata', 'Değer eklenemedi.');
     }
   };
+
 
 
   const handleDeleteGuide = async (id) => {
@@ -99,6 +121,7 @@ const EditGuideScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Kılavuz Düzenle</Text>
+
         {/* Kılavuz Düzenle yuvarlak butonu */}
         <TouchableOpacity
           style={[styles.circleButton, styles.guideButton]}
@@ -111,36 +134,59 @@ const EditGuideScreen = ({ route, navigation }) => {
       {/* Kılavuz düzenleme formu */}
       {isGuideFormVisible && (
         <>
-          <Text style={styles.label}>Yaş Aralığı</Text>
+          <View style={styles.switchContainer}>
+            <View style={styles.switchRow}>
+              <Text style={styles.label}>Yaş Aralığı Giriş Biçimi</Text>
+              <View style={styles.switchRight}>
+                <Text style={styles.switchText}>Ay</Text>
+                <Switch
+                  value={isYearSelected}
+                  onValueChange={(value) => setIsYearSelected(value)}
+                />
+                <Text style={styles.switchText}>Yıl</Text>
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.label}>Yaş Aralığı (Alt ve Üst Değerlerin ikiside Dahildir.) ({isYearSelected ? 'Yıl' : 'Ay'})</Text>
+
           <View style={styles.row}>
             <TextInput
               style={[styles.input, styles.halfInput]}
-              placeholder="minAge"
+              placeholder={isYearSelected ? "Alt Değer (Yıl)" : "Alt Değer (Ay)"}
               value={minAge}
               onChangeText={setMinAge}
               keyboardType="numeric"
             />
             <TextInput
               style={[styles.input, styles.halfInput]}
-              placeholder="maxAge"
+              placeholder={isYearSelected ? "Üst Değer (Yıl)" : "Üst Değer (Ay)"}
               value={maxAge}
               onChangeText={setMaxAge}
               keyboardType="numeric"
             />
           </View>
 
-          <Text style={styles.label}>Değer Aralığı</Text>
+
+
+
+
+          <Text style={styles.label}>
+            {["Min - Max", "95% confidence interval"].includes(guide.base)
+              ? "Değer Aralığı"
+              : "Ortalama ve Standart Sapma Değerleri"}
+          </Text>
           <View style={styles.row}>
             <TextInput
               style={[styles.input, styles.halfInput]}
-              placeholder="minValue"
+              placeholder={["Min - Max", "95% confidence interval"].includes(guide.base) ? "Alt Sınır" : "Ortalama Değer"}
               value={minValue}
               onChangeText={setMinValue}
               keyboardType="numeric"
             />
             <TextInput
               style={[styles.input, styles.halfInput]}
-              placeholder="maxValue"
+              placeholder={["Min - Max", "95% confidence interval"].includes(guide.base) ? "Üst Sınır" : "Standart Sapma Değeri"}
               value={maxValue}
               onChangeText={setMaxValue}
               keyboardType="numeric"
@@ -157,21 +203,27 @@ const EditGuideScreen = ({ route, navigation }) => {
 
 
 
-      <Text style={styles.subtitle}>Alt Tablolar</Text>
+      <Text style={styles.subtitle}>Kılavuz Adı : {guide.title} / Referans Değeri : {refName} </Text>
       <FlatList
         data={allRefValues}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
             <Text style={styles.tableTitle}>Yaş Aralığı</Text>
-            <Text style={styles.tableValue}>{item.minAge} - {item.maxAge}</Text>
+            <Text style={styles.tableValue}>
+              {item.minAge < 12 && item.maxAge < 12
+                ? `${item.minAge} - ${item.maxAge} Aylık`
+                : `${(item.minAge >= 12 ? item.minAge / 12 : item.minAge)} - ${(item.maxAge >= 12 ? item.maxAge / 12 : item.maxAge)} Yaşlarında (${item.minAge} - ${item.maxAge} Aylık)`}
+            </Text>
+
+
 
             <Text style={styles.tableTitle}>Referans Değer Aralığı</Text>
             <Text style={styles.tableValue}>{item.minValue} - {item.maxValue}</Text>
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('EditGuide', { refId: item.id })}
+                onPress={() => navigation.navigate('EditValue', { guideId, refName })}
               >
                 <Text style={styles.editButtonText}>Düzenle</Text>
               </TouchableOpacity>
@@ -338,6 +390,51 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
   },
+
+
+
+
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  switchContainer: {
+    marginBottom: 20,
+  },
+  switchRow: {
+    flexDirection: 'row', // Yatayda hizalama
+    alignItems: 'center', // Dikey hizalama
+    width: '100%', // Tüm alanı kaplasın
+  },
+  switchRight: {
+    flexDirection: 'row', // Switch ve metinler yatayda olacak
+    justifyContent: 'flex-end', // Sağda hizalama
+    alignItems: 'center', // Yatay hizalama
+    flex: 1, // Kalan alanı alacak
+  },
+  switchText: {
+    fontSize: 16,
+    marginHorizontal: 10, // Switch ile metin arasındaki mesafeyi ayarlar
+  },
+  row: {
+    flexDirection: 'row', // Yan yana inputlar
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    fontSize: 16,
+    borderRadius: 5,
+  },
+  halfInput: {
+    width: '45%', // Yarı genişlik
+    marginRight: '5%', // Aralarındaki boşluk
+  },
+
+
 
 
 

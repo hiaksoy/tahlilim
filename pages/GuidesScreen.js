@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { addGuide, getAllGuides, deleteGuide } from '../services/aGuidesService';
-
+import { BASES } from '../shared/consts';
+import { Picker } from '@react-native-picker/picker';
 
 const GuidesScreen = () => {
   const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [base, setBase] = useState(BASES[0]);
   const [guides, setGuides] = useState([]);
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false);
 
@@ -28,7 +30,7 @@ const GuidesScreen = () => {
       return;
     }
     try {
-      await addGuide(title, description);
+      await addGuide(title, description, base);
       setTitle('');
       setDescription('');
       fetchGuides();
@@ -69,7 +71,7 @@ const GuidesScreen = () => {
 
   useEffect(() => {
     fetchGuides();
-  } , []);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -108,6 +110,18 @@ const GuidesScreen = () => {
             onChangeText={setDescription}
           />
 
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={base}
+              onValueChange={(itemValue) => setBase(itemValue)}
+              style={styles.picker}
+            >
+              {BASES.map((option, index) => (
+                <Picker.Item key={index} label={option} value={option} />
+              ))}
+            </Picker>
+          </View>
+
           {/* Ekle Butonu */}
           <TouchableOpacity style={styles.saveButton} onPress={handleAddGuide}>
             <Text style={styles.saveButtonText}>Ekle</Text>
@@ -123,7 +137,7 @@ const GuidesScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.guideItem}>
 
-            <Text style={styles.guideTitle}>{item.title}</Text>
+            <Text style={styles.guideTitle}>{`${item.title} (${item.base})`}</Text>
             <Text style={styles.guideDescription}>{item.description}</Text>
             {/* <Text style={styles.guideDescription}>{JSON.stringify(item.createdAt)}</Text> */}
 
@@ -291,6 +305,18 @@ const styles = StyleSheet.create({
   guideDescription: {
     fontSize: 16,
     marginVertical: 5,
+  },
+
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 12, // Köşeleri yuvarlama
+    overflow: 'hidden', // Taşan köşeleri gizle
+    marginBottom: 12,
+  },
+  picker: {
+    backgroundColor: '#fff',
+    height: 50,
   },
 
 });

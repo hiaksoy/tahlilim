@@ -1,12 +1,13 @@
 import { db } from '../configs/firebase_config';
 import { collection, doc, getDocs, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 
-export const addGuide = async (title, description) => {
+export const addGuide = async (title, description,base) => {
   try {
     // Kılavuzlar koleksiyonuna yeni bir belge ekleniyor
     const newGuide = {
       title,
       description,
+      base,
       Degerler: {},  // Map türünde boş bir nesne olarak eklenir
       createdAt: new Date(),
     };
@@ -45,7 +46,7 @@ export const deleteGuide = async (id) => {
   await deleteDoc(doc(db, 'Kılavuzlar', id));
 };
 
-export const updateGuide = async (id, title, description) => {
+export const updateGuide = async (id, title, description, base) => {
   try {
     // Güncellenecek belgeye referans oluşturuluyor
     const guideRef = doc(db, 'Kılavuzlar', id);
@@ -54,6 +55,7 @@ export const updateGuide = async (id, title, description) => {
     const updatedGuide = {
       title,
       description,
+      base,
       updatedAt: new Date(),  // Güncellenme tarihi
     };
 
@@ -86,6 +88,7 @@ export const getGuideById = async (id) => {
     const result = {
       title: guideData.title,
       description: guideData.description,
+      base : guideData.base,
       createdAt: guideData.createdAt,
     };
 

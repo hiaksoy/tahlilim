@@ -4,12 +4,14 @@ import { REFS } from '../shared/consts';
 import { Picker } from '@react-native-picker/picker';
 import { updateGuide, getGuideById } from '../services/aGuidesService';
 import { addRef, getAllRefs } from '../services/aDegerlerService';
+import { BASES } from '../shared/consts';
 
 const EditGuideScreen = ({ route, navigation }) => {
   const { guideId } = route.params;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [base, setBase] = useState('');
   const [ref, setRef] = useState(''); // Değerler eklemek için
 
   const [allRefs, setAllRefs] = useState({});
@@ -49,7 +51,7 @@ const EditGuideScreen = ({ route, navigation }) => {
       return;
     }
     try {
-      await updateGuide(guideId, title, description);
+      await updateGuide(guideId, title, description, base);
       Alert.alert('Başarılı', 'Kılavuz güncellendi!');
       navigation.goBack();
     } catch (error) {
@@ -86,8 +88,11 @@ const EditGuideScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, isGuideFormVisible ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }]}>
-        <Text style={styles.title}>Kılavuzu Düzenle</Text>
+      <View style={[styles.header, isGuideFormVisible ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15, marginBottom: 15 }]}>
+        <TouchableOpacity onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}>
+          <Text style={styles.title}>Kılavuzu Düzenle</Text>
+        </TouchableOpacity>
+
         {/* Kılavuz Düzenle yuvarlak butonu */}
         <TouchableOpacity
           style={[styles.circleButton, styles.guideButton]}
@@ -100,12 +105,13 @@ const EditGuideScreen = ({ route, navigation }) => {
       {/* Kılavuz düzenleme formu */}
       {isGuideFormVisible && (
         <View style={{
-          backgroundColor: 'lightgrey'
+          backgroundColor: '#F7F6F2'
           , paddingTop: 20
           , paddingHorizontal: 16,
           paddingBottom: 20,
           borderBottomLeftRadius: 15,
           borderBottomRightRadius: 15,
+          marginBottom: 15
         }}>
           <TextInput
             style={styles.input}
@@ -120,6 +126,19 @@ const EditGuideScreen = ({ route, navigation }) => {
             onChangeText={setDescription}
           />
 
+          <View style={{ borderRadius: 8, overflow: 'hidden', backgroundColor: '#fff' }}>
+            <Picker
+              selectedValue={base}
+              onValueChange={(itemValue) => setBase(itemValue)}
+              style={{ backgroundColor: '#fff' }}  // İsteğe bağlı stil
+            >
+              {BASES.map((option, index) => (
+                <Picker.Item key={index} label={option} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+
           {/* Güncelle Butonu */}
           <TouchableOpacity style={styles.saveButton} onPress={handleUpdateGuide}>
             <Text style={styles.saveButtonText}>Güncelle</Text>
@@ -127,8 +146,10 @@ const EditGuideScreen = ({ route, navigation }) => {
         </View>
       )}
 
-      <View style={styles.valueSection}>
-        <Text style={styles.title}>Değer Ekle</Text>
+      <View style={[styles.header, isValueFormVisible ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }]}>
+      <TouchableOpacity onPress={() => setIsValueFormVisible(!isValueFormVisible)}>
+          <Text style={styles.title}>Değer Ekle</Text>
+        </TouchableOpacity>
         {/* Değer Ekle yuvarlak butonu */}
         <TouchableOpacity
           style={[styles.circleButton, styles.valueButton]}
@@ -140,29 +161,61 @@ const EditGuideScreen = ({ route, navigation }) => {
 
       {/* Değer ekleme formu */}
       {isValueFormVisible && (
-        <View style={styles.formContainer}>
-          <Picker
-            selectedValue={ref}
-            onValueChange={(itemValue) => setRef(itemValue)}
-            style={styles.input}
-          >
-            {REFS.map((option, index) => (
-              <Picker.Item key={index} label={option} value={option} />
-            ))}
-          </Picker>
+        <View style={{
+          backgroundColor: '#F7F6F2'
+          , paddingTop: 20
+          , paddingHorizontal: 16,
+          paddingBottom: 20,
+          borderBottomLeftRadius: 15,
+          borderBottomRightRadius: 15,
+        }}>
+          <View style={{
+            borderRadius: 8,
+            overflow: 'hidden',
+            backgroundColor: '#fff',
+            height: 50 // Dış View'in yüksekliğini manuel ayarlayabilirsiniz
+          }}>
+            <Picker
+              selectedValue={ref}
+              onValueChange={(itemValue) => setRef(itemValue)}
+              style={[styles.input, { height: '100%' }]} // Picker'ın yüksekliğini %100 yaparak dış view ile uyumlu hale getirin
+            >
+              {REFS.map((option, index) => (
+                <Picker.Item key={index} label={option} value={option} />
+              ))}
+            </Picker>
+          </View>
+
+
+
+
           <TouchableOpacity style={styles.saveButton} onPress={handleAddRef}>
             <Text style={styles.saveButtonText}>Değer Ekle</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      <Text style={styles.subtitle}>Alt Tablolar</Text>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <Text style={styles.subtitle}>Kılavuz : {title} / Referans Degerler</Text>
       <FlatList
         data={allRefs}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()} // 'id' undefined ise 'index' kullan
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
-            <Text style={styles.tableTitle}>{item.key}</Text>
             <Text style={styles.tableTitle}>{item.key}</Text>
             <View style={styles.actionButtons}>
               <TouchableOpacity
@@ -182,6 +235,8 @@ const EditGuideScreen = ({ route, navigation }) => {
           </View>
         )}
       />
+
+
     </View>
   );
 };
@@ -190,19 +245,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#C8C6C6',
   },
   header: {
     flexDirection: 'row', // Yatayda hizalama
     justifyContent: 'space-between', // Başlık ile buton arasında boşluk bırak
     alignItems: 'center', // Dikeyde ortalama
-    backgroundColor: 'lightgrey',
+    backgroundColor: '#F7F6F2',
     borderRadius: 15,
-
     padding: 20
-
   },
   title: {
+    marginTop: 3,
     fontSize: 28,
     fontWeight: 'bold',
     flex: 1, // Başlık ile buton arasında yer paylaşımı
@@ -223,7 +277,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   tableContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F7F6F2',
     marginBottom: 15,
     padding: 10,
     borderRadius: 8,
@@ -241,7 +295,7 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flex: 7, // %70 genişlik
-    backgroundColor: '#28a745', // Yeşil
+    backgroundColor: '#4B6587', // Yeşil
     padding: 10,
     borderRadius: 5,
     justifyContent: 'center',
@@ -255,7 +309,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     flex: 3, // %30 genişlik
-    backgroundColor: '#ff4d4f', // Kırmızı
+    backgroundColor: '#CD4439', // Kırmızı
     padding: 10,
     borderRadius: 5,
     justifyContent: 'center',
@@ -282,7 +336,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20, // Yuvarlak buton
-    backgroundColor: '#28a745',
+    backgroundColor: '#4B6587',
     justifyContent: 'center',
     alignItems: 'center',
   },
