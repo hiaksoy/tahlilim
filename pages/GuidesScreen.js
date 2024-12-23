@@ -18,6 +18,7 @@ const GuidesScreen = () => {
     try {
       const data = await getAllGuides();
       setGuides(data);
+      setBase(BASES[0]);
       console.log(data);
     } catch (error) {
       Alert.alert('Hata', error.message || 'Veriler alınamadı.');

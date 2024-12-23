@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList, Switch } from 'react-native';
 import { addValuesToRef, getAllRefsWithValues } from '../services/aDegerlerService';
 import { getGuideById } from '../services/aGuidesService';
+import { removeValueFromRef } from '../services/aValuesService';
 
 
 const EditGuideScreen = ({ route, navigation }) => {
@@ -105,16 +106,34 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleDeleteValue = async (guideId, refName, minAge, maxAge, minValue, maxValue) => {
+    // Silme işlemi için onay isteyen bir alert gösterilir
+    Alert.alert(
+      'Silme Onayı',
+      'Bu kılavuzu silmek istediğinizden emin misiniz?',
+      [
+        {
+          text: 'Hayır', // 'Hayır' seçeneği silme işlemini iptal eder
+          onPress: () => console.log('Silme işlemi iptal edildi'),
+          style: 'cancel',
+        },
+        {
+          text: 'Evet', // 'Evet' seçeneği silme işlemini gerçekleştirir
+          onPress: async () => {
+            try {
+              const valueToRemove = { minAge, maxAge, minValue, maxValue };
 
-
-  const handleDeleteGuide = async (id) => {
-    try {
-      await deleteSubTable(refId, id);
-      fetchGuide();
-      Alert.alert('Başarılı', 'Değer silindi!');
-    } catch (error) {
-      Alert.alert('Hata', error.message || 'Değer silinemedi.');
-    }
+              await removeValueFromRef(guideId, refName, valueToRemove);  // Silme işlemi yapılır
+              fetchGuide();  // Güncel kılavuzlar fetch edilir
+              Alert.alert('Başarılı', 'Kılavuz silindi!');  // Başarı mesajı
+            } catch (error) {
+              Alert.alert('Hata', error.message || 'Kılavuz silinemedi.');  // Hata mesajı
+            }
+          },
+        },
+      ],
+      { cancelable: false } // Kullanıcı dışarı tıklayarak iptal edemez
+    );
   };
 
   return (
@@ -205,7 +224,7 @@ const EditGuideScreen = ({ route, navigation }) => {
 
       <Text style={styles.subtitle}>Kılavuz Adı : {guide.title} / Referans Değeri : {refName} </Text>
       <FlatList
-        data={allRefValues}
+        data={[...allRefValues].sort((a, b) => a.minAge - b.minAge)} // minAge'e göre sırala
         keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
@@ -223,14 +242,14 @@ const EditGuideScreen = ({ route, navigation }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('EditValue', { guideId, refName })}
+                onPress={() => navigation.navigate('EditValue', { guideId, refName, minAge:item.minAge , maxAge: item.maxAge, minValue: item.minValue, maxValue: item.maxValue})} // Değer düzenleme sayfasına git
               >
                 <Text style={styles.editButtonText}>Düzenle</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => handleDeleteGuide(item.id)}
+                onPress={() => handleDeleteValue(guideId, refName, item.minAge, item.maxAge, item.minValue, item.maxValue)} // Değeri sil
               >
                 <Text style={styles.deleteButtonText}>Sil</Text>
               </TouchableOpacity>

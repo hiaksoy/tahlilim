@@ -11,7 +11,7 @@ const EditGuideScreen = ({ route, navigation }) => {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [base, setBase] = useState('');
+  const [base, setBase] = useState(''); 
   const [ref, setRef] = useState(''); // Değerler eklemek için
 
   const [allRefs, setAllRefs] = useState({});
@@ -25,6 +25,8 @@ const EditGuideScreen = ({ route, navigation }) => {
         const allRefs = await getAllRefs(guideId);
         setTitle(guide.title);
         setDescription(guide.description);
+        setBase(guide.base);
+        setRef(REFS[0]); // İlk değeri seç
         setAllRefs(allRefs);  // Alt tabloları ayarla
       } catch (error) {
         Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
@@ -39,6 +41,8 @@ const EditGuideScreen = ({ route, navigation }) => {
       const allRefs = await getAllRefs(guideId);
       setTitle(guide.title);
       setDescription(guide.description);
+      setBase(guide.base);
+      setRef(REFS[0]); // İlk değeri seç
       setAllRefs(allRefs);  // Alt tabloları ayarla
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
