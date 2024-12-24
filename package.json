@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "latest",
+    "@react-native-community/datetimepicker": "github:react-native-community/datetimepicker",
     "@react-native-firebase/app": "latest",
     "@react-native-firebase/auth": "latest",
     "@react-native-picker/picker": "^2.10.2",

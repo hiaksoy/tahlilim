@@ -48,9 +48,13 @@ const LoginScreen = () => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Giriş Yap</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonSecondary} onPress={handleRegister}>
+      {/* <TouchableOpacity style={styles.buttonSecondary} onPress={handleRegister}>
         <Text style={styles.buttonText}>Kayıt Ol</Text>
+      </TouchableOpacity> */}
+      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.loginLink}>Hesabınız yok mu? Kayıt Ol</Text>
       </TouchableOpacity>
+
     </View>
   );
 };
@@ -62,6 +66,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
     padding: 20,
+  },
+  loginLink: {
+    textAlign: 'center',
+    marginTop: 15,
+    color: '#007BFF',
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 28,

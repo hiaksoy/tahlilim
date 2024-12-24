@@ -36,15 +36,16 @@ const EditGuideScreen = ({ route, navigation }) => {
 
   const fetchGuide = async () => {
     try {
-      //   const guide = await getGuideById(refId);
       const allRefValues = await getAllRefsWithValues(guideId, refName);
-      setAllRefValues(allRefValues);  // Alt tabloları ayarla
-      console.log(guide.base);
+      setAllRefValues(allRefValues);
 
+      const guide = await getGuideById(guideId);
+      setGuide(guide);
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
     }
   };
+
 
   const handleUpdateGuide = async () => {
     if (!title || !description) {
@@ -224,7 +225,7 @@ const EditGuideScreen = ({ route, navigation }) => {
 
       <Text style={styles.subtitle}>Kılavuz Adı : {guide.title} / Referans Değeri : {refName} </Text>
       <FlatList
-        data={[...allRefValues].sort((a, b) => a.minAge - b.minAge)} // minAge'e göre sırala
+        data={allRefValues}
         keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
@@ -232,8 +233,9 @@ const EditGuideScreen = ({ route, navigation }) => {
             <Text style={styles.tableValue}>
               {item.minAge < 12 && item.maxAge < 12
                 ? `${item.minAge} - ${item.maxAge} Aylık`
-                : `${(item.minAge >= 12 ? item.minAge / 12 : item.minAge)} - ${(item.maxAge >= 12 ? item.maxAge / 12 : item.maxAge)} Yaşlarında (${item.minAge} - ${item.maxAge} Aylık)`}
+                : `${item.minAge >= 12 ? item.minAge / 12 : item.minAge} - ${item.maxAge >= 12 ? item.maxAge / 12 : item.maxAge} Yaşlarında (${item.minAge} - ${item.maxAge} Aylık)`}
             </Text>
+
 
 
 
@@ -242,7 +244,7 @@ const EditGuideScreen = ({ route, navigation }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('EditValue', { guideId, refName, minAge:item.minAge , maxAge: item.maxAge, minValue: item.minValue, maxValue: item.maxValue})} // Değer düzenleme sayfasına git
+                onPress={() => navigation.navigate('EditValue', { guideId, refName, minAge: item.minAge, maxAge: item.maxAge, minValue: item.minValue, maxValue: item.maxValue })} // Değer düzenleme sayfasına git
               >
                 <Text style={styles.editButtonText}>Düzenle</Text>
               </TouchableOpacity>
