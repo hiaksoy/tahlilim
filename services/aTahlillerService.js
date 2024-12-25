@@ -1,4 +1,4 @@
-import { collection, addDoc, getDoc, updateDoc, deleteDoc, getDocs, doc } from 'firebase/firestore';
+import { collection, addDoc, getDoc, updateDoc, deleteDoc, getDocs, doc, where, query } from 'firebase/firestore';
 import { db } from '../configs/firebase_config';
 
 // Tahlil Ekle
@@ -48,4 +48,18 @@ export const updateTahlil = async (id, updatedData) => {
 export const deleteTahlil = async (id) => {
     const docRef = doc(db, 'Tahliller', id);
     await deleteDoc(docRef);
+};
+
+
+export const getTahlillerByUserId = async (userId) => {
+    try {
+        const tahlillerRef = collection(db, 'Tahliller');
+        const q = query(tahlillerRef, where('userId', '==', userId));
+        const querySnapshot = await getDocs(q);
+
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error('Kullanıcıya ait tahliller getirilirken hata:', error);
+        throw new Error('Kullanıcıya ait tahliller getirilirken hata oluştu.');
+    }
 };

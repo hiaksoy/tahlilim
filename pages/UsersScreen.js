@@ -25,8 +25,8 @@ const UsersScreen = () => {
     setExpandedUser(expandedUser === userId ? null : userId); // Kullanıcıyı aç/kapat
   };
 
-  const handleViewUser = (userId) => {
-    navigation.navigate('UserDetails', { userId }); // Kullanıcı detaylarına git
+  const handleShowTests = (userId) => {
+    navigation.navigate('ShowUserTests', { userId: userId }); // Kullanıcı detaylarına git
   };
 
   const handleEditUser = (userId) => {
@@ -71,9 +71,9 @@ const UsersScreen = () => {
                   {/* Görüntüle Butonu */}
                   <TouchableOpacity
                     style={styles.viewButton}
-                    onPress={() => handleViewUser(item.id)}
+                    onPress={() => handleShowTests(item.id)}
                   >
-                    <Text style={styles.viewButtonText}>Görüntüle</Text>
+                    <Text style={styles.viewButtonText}>Tahliller</Text>
                   </TouchableOpacity>
 
                    {/* Tahlil Butonu */}

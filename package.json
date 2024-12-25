@@ -16,6 +16,7 @@
     "@react-native-picker/picker": "^2.10.2",
     "@react-navigation/native": "latest",
     "@react-navigation/stack": "latest",
+    "date-fns": "^4.1.0",
     "expo": "latest",
     "expo-status-bar": "latest",
     "firebase": "latest",
