@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
+import { registerUser } from '../services/authService';
+import { doc, addDoc, collection } from 'firebase/firestore';
+import { db } from '../configs/firebase_config';
 
-const RegisterForm = () => {
+const RegisterScreen = () => {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [tcNo, setTcNo] = useState('');
@@ -13,19 +16,44 @@ const RegisterForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const navigation = useNavigation();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!name || !surname || !tcNo || !email || !password || !confirmPassword || !gender) {
       Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
       return;
     }
+
     if (password !== confirmPassword) {
       Alert.alert('Hata', 'Şifreler eşleşmiyor.');
       return;
     }
-    Alert.alert('Başarılı', 'Kayıt işlemi başarılı.');
+
+    try {
+      // Firebase Authentication ile kullanıcı kaydı
+      const userCredential = await registerUser(email, password);
+      const user = userCredential.user;
+
+      const newUser = {
+        name,
+        surname,
+        tcNo,
+        birthDate: birthDate.toLocaleDateString(),
+        gender,
+        email,
+        role: 'user',
+        createdAt: new Date(),
+      };
+
+      // Firestore'da kullanıcının bilgilerini kaydet
+      await addDoc(collection(db, 'Kullanıcılar'), { ...newUser });
+
+      Alert.alert('Başarılı', `Kayıt işlemi başarılı.`);
+      navigation.navigate('Login');
+    } catch (error) {
+      Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');
+    }
   };
 
   const handleNavigateToLogin = () => {
@@ -35,7 +63,7 @@ const RegisterForm = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Kayıt Formu</Text>
-      
+
       {/* Adı */}
       <TextInput
         style={styles.input}
@@ -43,7 +71,7 @@ const RegisterForm = () => {
         value={name}
         onChangeText={setName}
       />
-      
+
       {/* Soyadı */}
       <TextInput
         style={styles.input}
@@ -51,7 +79,7 @@ const RegisterForm = () => {
         value={surname}
         onChangeText={setSurname}
       />
-      
+
       {/* TC Kimlik Numarası */}
       <TextInput
         style={styles.input}
@@ -61,7 +89,7 @@ const RegisterForm = () => {
         onChangeText={setTcNo}
         maxLength={11}
       />
-      
+
       {/* Doğum Tarihi */}
       <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePicker}>
         <Text>Doğum Tarihi: {birthDate.toLocaleDateString()}</Text>
@@ -80,13 +108,13 @@ const RegisterForm = () => {
 
       {/* Cinsiyet */}
       <View style={styles.genderContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.genderButton, gender === 'Erkek' && styles.genderSelected]}
           onPress={() => setGender('Erkek')}
         >
           <Text>Erkek</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.genderButton, gender === 'Kadın' && styles.genderSelected]}
           onPress={() => setGender('Kadın')}
         >
@@ -102,7 +130,7 @@ const RegisterForm = () => {
         value={email}
         onChangeText={setEmail}
       />
-      
+
       {/* Şifre */}
       <TextInput
         style={styles.input}
@@ -111,7 +139,7 @@ const RegisterForm = () => {
         value={password}
         onChangeText={setPassword}
       />
-      
+
       {/* Şifre Tekrar */}
       <TextInput
         style={styles.input}
@@ -127,6 +155,7 @@ const RegisterForm = () => {
       {/* Zaten Hesabınız Var mı? */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Zaten hesabınız var mı?</Text>
+
         <TouchableOpacity onPress={handleNavigateToLogin}>
           <Text style={styles.loginText}>Giriş Yap</Text>
         </TouchableOpacity>
@@ -140,7 +169,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
@@ -195,4 +224,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterForm;
+export default RegisterScreen;

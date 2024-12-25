@@ -9,6 +9,8 @@ import EditGuideScreen from './EditGuideScreen';
 import EditRefScreen from './EditRefScreen';
 import EditValuesScreen from './EditValuesScreen';
 import RegisterScreen from './RegisterScreen'; // RegisterScreen'i import edin.
+import UsersScreen from './UsersScreen';
+import AddTestScreen from './AddTestScreen';
 
 
 const Stack = createStackNavigator();
@@ -25,6 +27,8 @@ function HomeScreen({ navigation }) {
         title="Register Sayfasına Git"
         onPress={() => navigation.navigate('Register')}
       />
+
+
     </View>
   );
 }
@@ -82,6 +86,16 @@ export default function App() {
           name="Register"
           component={RegisterScreen}
           options={{ title: 'Kayıt Ol' }} // EditRef ekranının başlık ismini burada değiştirdik.
+        />
+          <Stack.Screen
+          name="Users"
+          component={UsersScreen}
+          options={{ title: 'Kullanıcılar' }} // EditRef ekranının başlık ismini burada değiştirdik.
+        />
+          <Stack.Screen
+          name="AddTest"
+          component={AddTestScreen}
+          options={{ title: 'Tahliller' }} // EditRef ekranının başlık ismini burada değiştirdik.
         />
       </Stack.Navigator>
     </NavigationContainer>

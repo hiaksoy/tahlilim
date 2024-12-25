@@ -22,6 +22,11 @@ const DashboardScreen = () => {
     navigation.navigate('Guides');
   };
 
+  const goToUsers = () => {
+    navigation.navigate('Users');
+  }
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Hoşgeldiniz</Text>
@@ -36,6 +41,10 @@ const DashboardScreen = () => {
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.buttonText}>Çıkış Yap</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={ goToUsers}>
+        <Text style={styles.buttonText}>Kullanıcılar</Text>
       </TouchableOpacity>
     </View>
   );
