@@ -1,8 +1,6 @@
 // adminStack.js
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../pages/HomeScreen';
-import LoginScreen from '../pages/LoginScreen';
 import DashboardScreen from '../pages/DashboardScreen';
 import GuidesScreen from '../pages/GuidesScreen';
 import EditGuideScreen from '../pages/EditGuideScreen';
@@ -12,6 +10,7 @@ import RegisterScreen from '../pages/RegisterScreen';
 import UsersScreen from '../pages/UsersScreen';
 import AddTestScreen from '../pages/AddTestScreen';
 import ShowUserTestsScreen from '../pages/ShowUserTestsScreen';
+import HomeScreen from '../pages/HomeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -74,6 +73,11 @@ export default function AdminStack() {
         name="ShowUserTests"
         component={ShowUserTestsScreen}
         options={{ title: 'Tahliller' }}
+      />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ title: 'Ana Sayfa' }}
       />
       {/* Eğer AdminStack içinde Home veya Login’i de kullanmak istiyorsanız ekleyebilirsiniz */}
       {/* <Stack.Screen

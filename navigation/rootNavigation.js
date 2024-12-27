@@ -1,46 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { auth } from '../configs/firebase_config';
 import AdminStack from './adminStack';
 import UserStack from './userStack';
+import AuthStack from './authStack';
 import { getUserByEmail } from '../services/aUsersService';
+import { AuthContext } from '../configs/authContext';
 
 const RootNavigation = () => {
-  const [userRole, setUserRole] = useState(null); // Kullanıcı rolü için state
+  const { user } = useContext(AuthContext); // Kullanıcı bilgisi
+  const [role, setRole] = useState(null); // Kullanıcı rolü
   const [loading, setLoading] = useState(true); // Yüklenme durumu
 
   useEffect(() => {
     const fetchUserRole = async () => {
-      try {
-        const user = auth.currentUser;
-
-        if (user) {
-          const role = await getUserByEmail(user.email); // Kullanıcı rolünü al
-          setUserRole(role); // State'e ata
-        } else {
-          setUserRole(null); // Kullanıcı yoksa null olarak ata
+      if (user) {
+        try {
+          const userRole = await getUserByEmail(user.email); // Rolü veritabanından al
+          setRole(userRole);
+        } catch (error) {
+          console.error('Kullanıcı rolü alınırken hata oluştu:', error);
         }
-      } catch (error) {
-        console.error('Hata:', error.message);
-        setUserRole(null); // Hata durumunda role null
-      } finally {
-        setLoading(false); // Yüklenme durumunu bitir
       }
+      setLoading(false); // Yükleme tamamlandı
     };
 
     fetchUserRole();
-  }, []); // Bileşen yüklendiğinde çalışır
+  }, [user]);
 
-  // Yüklenme ekranı veya boş bir ekran göstermek
+  // Yükleme sırasında bir gösterge gösterilir
   if (loading) {
-    return null; // Yüklenirken bir spinner veya boş ekran gösterebilirsiniz
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#007BFF" />
+      </View>
+    );
   }
 
-  // Kullanıcı rolüne göre yönlendirme yap
-  if (userRole === 'admin') {
-    return <AdminStack />;
-  } else {
-    return <UserStack />;
+  // Kullanıcı durumu ve role tam yüklendikten sonra stack'leri göster
+  if (!user) {
+    return <AuthStack />;
   }
+
+  if (role === 'admin') {
+    return <AdminStack />;
+  }
+
+  return <UserStack />;
 };
 
 export default RootNavigation;

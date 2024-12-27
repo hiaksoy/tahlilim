@@ -1,29 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { loginUser, registerUser } from '../services/authService';
-import { useNavigation } from '@react-navigation/native'; // Yönlendirme için gerekli
+import { useNavigation } from '@react-navigation/native';
+import { AuthContext } from '../configs/authContext'; // AuthContext'i içeri aktarıyoruz
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
+  const { setUser } = useContext(AuthContext); // AuthContext'ten setUser'ı alıyoruz
 
   const handleLogin = async () => {
     try {
       const user = await loginUser(email, password);
-      Alert.alert('Başarılı Giriş', `Hoşgeldiniz, ${user.email}`);
-  
-      // Artık login olduğu için rootNavigation içinde AdminStack veya UserStack açılacak
-      navigation.navigate('RootNav');
+      // Alert.alert('Başarılı Giriş', `Hoşgeldiniz, ${user.email}`);
+
+      // Kullanıcı bilgisini güncelle
+      setUser(user);
+
+      // RootNavigation'a geçiş yap
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [{ name: 'RootNavigation' }], // Doğru ekran adı olduğundan emin olun
+      // });
     } catch (error) {
       Alert.alert('Giriş Hatası', error.message || 'Bir hata oluştu.');
     }
   };
-  
 
   const handleRegister = async () => {
     try {
-      const user = await registerUser(email, password); // `await` kullanımı önemli
+      const user = await registerUser(email, password);
       Alert.alert('Başarılı Kayıt', `Hesap oluşturuldu: ${user.email}`);
     } catch (error) {
       Alert.alert('Kayıt Hatası', error.message || 'Bir hata oluştu.');
@@ -51,13 +58,9 @@ const LoginScreen = () => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Giriş Yap</Text>
       </TouchableOpacity>
-      {/* <TouchableOpacity style={styles.buttonSecondary} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Kayıt Ol</Text>
-      </TouchableOpacity> */}
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
         <Text style={styles.loginLink}>Hesabınız yok mu? Kayıt Ol</Text>
       </TouchableOpacity>
-
     </View>
   );
 };
@@ -100,14 +103,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     marginBottom: 15,
-  },
-  buttonSecondary: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#28a745',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
   },
   buttonText: {
     color: '#fff',

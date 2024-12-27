@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { auth } from '../configs/firebase_config'; 
-import { signOut } from 'firebase/auth'; 
-import { useNavigation } from '@react-navigation/native'; 
+import { auth } from '../configs/firebase_config';
+import { signOut } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
+import { AuthContext } from '../configs/authContext';
 
 const DashboardScreen = () => {
+  const { setUser } = useContext(AuthContext); // AuthContext'ten setUser fonksiyonunu alın
   const user = auth.currentUser;
   const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      Alert.alert('Başarılı Çıkış', 'Çıkış yapıldı!');
-      navigation.navigate('Home');
+      await signOut(auth); // Firebase'den çıkış yap
+      setUser(null); // Kullanıcıyı sıfırla
     } catch (error) {
       Alert.alert('Çıkış Hatası', error.message || 'Çıkış yapılamadı.');
     }
@@ -24,12 +25,11 @@ const DashboardScreen = () => {
 
   const goToUsers = () => {
     navigation.navigate('Users');
-  }
+  };
 
   const goToFastSearch = () => {
     navigation.navigate('Home');
-  }
-
+  };
 
   return (
     <View style={styles.container}>
@@ -51,11 +51,9 @@ const DashboardScreen = () => {
         <Text style={styles.buttonText}>Hızlı Arama</Text>
       </TouchableOpacity>
 
-
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.buttonText}>Çıkış Yap</Text>
       </TouchableOpacity>
-
     </View>
   );
 };
