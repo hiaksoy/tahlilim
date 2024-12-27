@@ -125,7 +125,7 @@ const EditGuideScreen = ({ route, navigation }) => {
           />
           <TextInput
             style={styles.input}
-            placeholder="Açıklama"
+            placeholder="Açıklamaaa"
             value={description}
             onChangeText={setDescription}
           />
