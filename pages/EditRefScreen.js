@@ -13,9 +13,6 @@ const EditGuideScreen = ({ route, navigation }) => {
   const [minValue, setMinValue] = useState('');
   const [maxValue, setMaxValue] = useState('');
   const [guide, setGuide] = useState('');
-  const [isYearSelected, setIsYearSelected] = useState(false);
-
-
   const [allRefValues, setAllRefValues] = useState({});
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false); // Kılavuz düzenleme formunun görünürlüğü
 
@@ -46,21 +43,6 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
-
-  const handleUpdateGuide = async () => {
-    if (!title || !description) {
-      Alert.alert('Uyarı', 'Tüm alanları doldurun.');
-      return;
-    }
-    try {
-      await updateGuide(refId, { title, description });
-      Alert.alert('Başarılı', 'Kılavuz güncellendi!');
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('Hata', 'Kılavuz güncellenemedi.');
-    }
-  };
-
   const handleAddRefFields = async () => {
     if (!minAge || !maxAge || !minValue || !maxValue) {
       Alert.alert('Uyarı', 'Tüm alanları doldurun.');
@@ -71,9 +53,6 @@ const EditGuideScreen = ({ route, navigation }) => {
       let finalMinValue = minValue;
       let finalMaxValue = maxValue;
 
-      // Eğer yıl seçili ise, minAge ve maxAge'i 12 ile çarp
-      const adjustedMinAge = isYearSelected ? parseFloat(minAge) * 12 : parseFloat(minAge);
-      const adjustedMaxAge = isYearSelected ? parseFloat(maxAge) * 12 : parseFloat(maxAge);
 
       // guide.base değerine göre işlem yap
       if (guide.base === 'Geometric mean ± SD' || guide.base === 'Mean ± SD') {
@@ -85,8 +64,8 @@ const EditGuideScreen = ({ route, navigation }) => {
       await addValuesToRef(
         guideId,
         refName,
-        adjustedMinAge.toString(),  // Ay cinsinden gönder
-        adjustedMaxAge.toString(),  // Ay cinsinden gönder
+        minAge,
+        maxAge,
         finalMinValue,
         finalMaxValue
       );
@@ -154,33 +133,21 @@ const EditGuideScreen = ({ route, navigation }) => {
       {/* Kılavuz düzenleme formu */}
       {isGuideFormVisible && (
         <>
-          <View style={styles.switchContainer}>
-            <View style={styles.switchRow}>
-              <Text style={styles.label}>Yaş Aralığı Giriş Biçimi</Text>
-              <View style={styles.switchRight}>
-                <Text style={styles.switchText}>Ay</Text>
-                <Switch
-                  value={isYearSelected}
-                  onValueChange={(value) => setIsYearSelected(value)}
-                />
-                <Text style={styles.switchText}>Yıl</Text>
-              </View>
-            </View>
-          </View>
+          
 
-          <Text style={styles.label}>Yaş Aralığı (Alt ve Üst Değerlerin ikiside Dahildir.) ({isYearSelected ? 'Yıl' : 'Ay'})</Text>
+          <Text style={styles.label}>Yaş Aralığı (Alt ve Üst Değerlerin ikiside Dahildir.) (Ay)</Text>
 
           <View style={styles.row}>
             <TextInput
               style={[styles.input, styles.halfInput]}
-              placeholder={isYearSelected ? "Alt Değer (Yıl)" : "Alt Değer (Ay)"}
+              placeholder={"Alt Değer (Ay)"}
               value={minAge}
               onChangeText={setMinAge}
               keyboardType="numeric"
             />
             <TextInput
               style={[styles.input, styles.halfInput]}
-              placeholder={isYearSelected ? "Üst Değer (Yıl)" : "Üst Değer (Ay)"}
+              placeholder={"Üst Değer (Ay)"}
               value={maxAge}
               onChangeText={setMaxAge}
               keyboardType="numeric"

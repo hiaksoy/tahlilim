@@ -12,7 +12,7 @@ const DashboardScreen = () => {
     try {
       await signOut(auth);
       Alert.alert('Başarılı Çıkış', 'Çıkış yapıldı!');
-      navigation.navigate('Login');
+      navigation.navigate('Home');
     } catch (error) {
       Alert.alert('Çıkış Hatası', error.message || 'Çıkış yapılamadı.');
     }
@@ -24,6 +24,10 @@ const DashboardScreen = () => {
 
   const goToUsers = () => {
     navigation.navigate('Users');
+  }
+
+  const goToFastSearch = () => {
+    navigation.navigate('Home');
   }
 
 
@@ -39,13 +43,19 @@ const DashboardScreen = () => {
         <Text style={styles.buttonText}>Kılavuzlar Sayfasına Git</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.button} onPress={goToUsers}>
+        <Text style={styles.buttonText}>Kullanıcılar</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={goToFastSearch}>
+        <Text style={styles.buttonText}>Hızlı Arama</Text>
+      </TouchableOpacity>
+
+
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.buttonText}>Çıkış Yap</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={ goToUsers}>
-        <Text style={styles.buttonText}>Kullanıcılar</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -85,6 +95,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
+    marginBottom: 15,
   },
   buttonText: {
     color: '#fff',

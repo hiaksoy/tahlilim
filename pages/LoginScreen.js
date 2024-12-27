@@ -10,13 +10,16 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const user = await loginUser(email, password); // `await` kullanımı önemli
+      const user = await loginUser(email, password);
       Alert.alert('Başarılı Giriş', `Hoşgeldiniz, ${user.email}`);
-      navigation.navigate('Dashboard'); // Giriş sonrası yönlendirme
+  
+      // Artık login olduğu için rootNavigation içinde AdminStack veya UserStack açılacak
+      navigation.navigate('RootNav');
     } catch (error) {
       Alert.alert('Giriş Hatası', error.message || 'Bir hata oluştu.');
     }
   };
+  
 
   const handleRegister = async () => {
     try {
