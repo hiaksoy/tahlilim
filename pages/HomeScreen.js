@@ -36,6 +36,12 @@ export default function HomeScreen() {
     setShowDatePicker(true);
   };
 
+  const parseCommaFloat = (val) => {
+    if (val === null || val === undefined) return NaN;
+    return parseFloat(String(val).replace(',', '.'));
+  };
+  
+
   const handleDateChange = (event, selectedDate) => {
     // iOS'ta picker açık kalmasın diye:
     if (Platform.OS === 'android') {
@@ -148,78 +154,79 @@ export default function HomeScreen() {
 
 
 const sorgula = async () => {
-    if (!dogumTarihi) {
-      alert('Lütfen doğum tarihi seçiniz.');
-      return;
-    }
-  
-    try {
-      const snapshot = await getDocs(collection(db, 'Kılavuzlar')); // "Kılavuzlar" koleksiyonu
-      let tempResults = [];
-  
-      // Tüm kılavuz dokümanlarında gezin
-      snapshot.forEach((doc) => {
-        const kilavuzData = doc.data();
-  
-        // "Degerler" map'i var mı kontrol edelim
-        if (!kilavuzData.Degerler) {
-          return; 
+  if (!dogumTarihi) {
+    alert('Lütfen doğum tarihi seçiniz.');
+    return;
+  }
+
+  try {
+    const snapshot = await getDocs(collection(db, 'Kılavuzlar'));
+    let tempResults = [];
+
+    snapshot.forEach((doc) => {
+      const kilavuzData = doc.data();
+
+      // "Degerler" map'i var mı kontrol
+      if (!kilavuzData.Degerler) {
+        return;
+      }
+
+      // Ekranda girilen her "değer" (ad, sonuc) için
+      degerler.forEach(({ ad, sonuc }) => {
+        // Kullanıcıdan gelen "sonuc" virgüllü ise nokta yap
+        const sonucFloat = parseCommaFloat(sonuc);
+        if (isNaN(sonucFloat)) {
+          // Geçersiz giriş
+          return;
         }
-  
-        // Ekranda girilen her "değer" için (Picker’da seçtiğin "ad", ve "sonuc" girişi)
-        degerler.forEach(({ ad, sonuc }) => {
-          const sonucFloat = parseFloat(sonuc);
-          if (isNaN(sonucFloat)) {
-            // Geçersiz sonuç girilmişse atla
-            return;
-          }
-  
-          // Firestore dokümanındaki "Degerler" map'i içinde "ad" key'i var mı?
-          // Örneğin Degerler = { Glukoz: [...], BeyazKüre: [...] }
-          // ad = "Glukoz" veya "BeyazKüre"
-          if (kilavuzData.Degerler[ad]) {
-            // İlgili array'i al
-            const arrayNesneler = kilavuzData.Degerler[ad];
-  
-            // Yaş hesapla (ay cinsinden)
-            const bugun = new Date();
-            const ayFarki = hesaplaAyOlarakYas(bugun, dogumTarihi);
-  
-            // Array içindeki her nesnede minAge <= ayFarki <= maxAge kontrolü
-            arrayNesneler.forEach((item) => {
-              // item = { minAge, maxAge, minValue, maxValue }
-              if (ayFarki >= item.minAge && ayFarki <= item.maxAge) {
-                let status = 'Normal';
-  
-                if (sonucFloat < item.minValue) {
-                  status = 'Düşük';
-                } else if (sonucFloat > item.maxValue) {
-                  status = 'Yüksek';
-                }
-  
-                // Sonuç nesnesi
-                tempResults.push({
-                  ad,                     // Picker’da seçilen değer (ör. "Glukoz")
-                  sonucGirilen: sonuc,    // Kullanıcının girdiği sonuç değeri
-                  minValue: item.minValue,
-                  maxValue: item.maxValue,
-                  status,
-                  kilavuzAdi: doc.data().title,     // Dokümanın ID'si (veya doc.data().isim)
-                });
+
+        // Firestore dokümanındaki "Degerler" map'i içinde bu "ad" var mı?
+        if (kilavuzData.Degerler[ad]) {
+          const arrayNesneler = kilavuzData.Degerler[ad];
+
+          // Yaş hesapla (ay cinsinden)
+          const bugun = new Date();
+          const ayFarki = hesaplaAyOlarakYas(bugun, dogumTarihi);
+
+          arrayNesneler.forEach((item) => {
+            // Firestore'dan da virgüllü gelebilir
+            const minVal = parseCommaFloat(item.minValue);
+            const maxVal = parseCommaFloat(item.maxValue);
+
+            // minAge, maxAge da virgüllü olabilir mi?
+            // Normalde yaş aralığı tam sayı olur; 
+            // yine de garantiye almak istersen parse...
+            const minAge = parseFloat(item.minAge);
+            const maxAge = parseFloat(item.maxAge);
+
+            if (ayFarki >= minAge && ayFarki <= maxAge) {
+              let status = 'Normal';
+              if (sonucFloat < minVal) {
+                status = 'Düşük';
+              } else if (sonucFloat > maxVal) {
+                status = 'Yüksek';
               }
-            });
-          }
-        });
+
+              tempResults.push({
+                ad,
+                sonucGirilen: sonuc, // Ekranda virgüllü halini göstermek istersen
+                minValue: minVal,
+                maxValue: maxVal,
+                status,
+                kilavuzAdi: doc.data().title,
+              });
+            }
+          });
+        }
       });
-  
-      // Çıkan tüm sonuçları state'e atıyoruz
-      setSonuclar(tempResults);
-  
-    } catch (err) {
-      console.error('Sorgu hatası:', err);
-      alert('Sorgu yapılırken bir hata oluştu.');
-    }
-  };
+    });
+
+    setSonuclar(tempResults);
+  } catch (err) {
+    console.error('Sorgu hatası:', err);
+    alert('Sorgu yapılırken bir hata oluştu.');
+  }
+};
 
   // Basit bir ay hesabı (tamamen örnek):
   const hesaplaAyOlarakYas = (bugun, dt) => {

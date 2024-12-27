@@ -44,10 +44,10 @@ const EditGuideScreen = ({ route, navigation }) => {
   };
 
   const handleAddRefFields = async () => {
-    if (!minAge || !maxAge || !minValue || !maxValue) {
-      Alert.alert('Uyarı', 'Tüm alanları doldurun.');
-      return;
-    }
+    // if (!minAge || !maxAge || !minValue || !maxValue) {
+    //   Alert.alert('Uyarı', 'Tüm alanları doldurun.');
+    //   return;
+    // }
 
     try {
       let finalMinValue = minValue;
@@ -69,17 +69,22 @@ const EditGuideScreen = ({ route, navigation }) => {
         finalMinValue,
         finalMaxValue
       );
-
+ 
+      fetchGuide(); // Güncel kılavuzları getir
+      setMinAge(''); // Inputları temizle
+      setMaxAge(''); // Inputları temizle
+      setMinValue(''); // Inputları temizle
+      setMaxValue(''); // Inputları temizle
       // Başarılı ekleme sonrası işlemler
-      Alert.alert('Başarılı', 'Değer eklendi!', [
-        {
-          text: 'Tamam',
-          onPress: () => {
-            setIsGuideFormVisible(false); // formu gizle
-            fetchGuide(); // guide'ı yeniden getir
-          },
-        },
-      ]);
+      // Alert.alert('Başarılı', 'Değer eklendi!', [
+      //   {
+      //     text: 'Tamam',
+      //     onPress: () => {
+      //       setIsGuideFormVisible(false); // formu gizle
+      //       fetchGuide(); // guide'ı yeniden getir
+      //     },
+      //   },
+      // ]);
     } catch (error) {
       // Hata durumu
       Alert.alert('Hata', 'Değer eklenemedi.');
