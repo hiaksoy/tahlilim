@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  StyleSheet
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { addGuide, getAllGuides, deleteGuide } from '../services/aGuidesService';
 import { BASES } from '../shared/consts';
@@ -12,7 +20,6 @@ const GuidesScreen = () => {
   const [base, setBase] = useState(BASES[0]);
   const [guides, setGuides] = useState([]);
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false);
-
 
   const fetchGuides = async () => {
     try {
@@ -42,33 +49,31 @@ const GuidesScreen = () => {
   };
 
   const handleDeleteGuide = async (id) => {
-    // Silme işlemi için onay isteyen bir alert gösterilir
     Alert.alert(
       'Silme Onayı',
       'Bu kılavuzu silmek istediğinizden emin misiniz?',
       [
         {
-          text: 'Hayır', // 'Hayır' seçeneği silme işlemini iptal eder
+          text: 'Hayır',
           onPress: () => console.log('Silme işlemi iptal edildi'),
-          style: 'cancel',
+          style: 'cancel'
         },
         {
-          text: 'Evet', // 'Evet' seçeneği silme işlemini gerçekleştirir
+          text: 'Evet',
           onPress: async () => {
             try {
-              await deleteGuide(id);  // Silme işlemi yapılır
-              fetchGuides();  // Güncel kılavuzlar fetch edilir
-              Alert.alert('Başarılı', 'Kılavuz silindi!');  // Başarı mesajı
+              await deleteGuide(id);
+              fetchGuides();
+              Alert.alert('Başarılı', 'Kılavuz silindi!');
             } catch (error) {
-              Alert.alert('Hata', error.message || 'Kılavuz silinemedi.');  // Hata mesajı
+              Alert.alert('Hata', error.message || 'Kılavuz silinemedi.');
             }
-          },
-        },
+          }
+        }
       ],
-      { cancelable: false } // Kullanıcı dışarı tıklayarak iptal edemez
+      { cancelable: false }
     );
   };
-
 
   useEffect(() => {
     fetchGuides();
@@ -76,28 +81,26 @@ const GuidesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, isGuideFormVisible ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }]}>
+      <View
+        style={[
+          styles.header,
+          isGuideFormVisible
+            ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
+            : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }
+        ]}
+      >
         <Text style={styles.title}>Kılavuz Ekle</Text>
         {/* Kılavuz Düzenle yuvarlak butonu */}
         <TouchableOpacity
           style={[styles.circleButton, styles.guideButton]}
-          onPress={() => setIsGuideFormVisible(!isGuideFormVisible)} // Kılavuz düzenleme formunu aç/kapat
+          onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}
         >
           <Text style={styles.circleButtonText}>+</Text>
         </TouchableOpacity>
       </View>
 
-
-
       {isGuideFormVisible && (
-        <View style={{
-          backgroundColor: 'lightgrey'
-          , paddingTop: 20
-          , paddingHorizontal: 16,
-          paddingBottom: 20,
-          borderBottomLeftRadius: 15,
-          borderBottomRightRadius: 15
-        }}>
+        <View style={styles.formContainer}>
           <TextInput
             style={styles.input}
             placeholder="Kılavuz İsmi"
@@ -137,27 +140,24 @@ const GuidesScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.guideItem}>
-
             <Text style={styles.guideTitle}>{`${item.title} (${item.base})`}</Text>
             <Text style={styles.guideDescription}>{item.description}</Text>
-            {/* <Text style={styles.guideDescription}>{JSON.stringify(item.createdAt)}</Text> */}
 
             <View style={styles.actionButtons}>
-
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}>
+                onPress={() => navigation.navigate('EditGuide', { guideId: item.id })}
+              >
                 <Text style={styles.editButtonText}>Görüntüle/Düzenle</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => handleDeleteGuide(item.id)}>
+                onPress={() => handleDeleteGuide(item.id)}
+              >
                 <Text style={styles.deleteButtonText}>Sil</Text>
               </TouchableOpacity>
-
             </View>
-
           </View>
         )}
       />
@@ -165,160 +165,177 @@ const GuidesScreen = () => {
   );
 };
 
+export default GuidesScreen;
+
+// ---------------------------------------------------------------------
+// STYLES
+// ---------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F3F8FE', // Pastel mavi arkaplan (diğer sayfalarla uyumlu)
+    padding: 20
   },
   header: {
-    flexDirection: 'row', // Yatayda hizalama
-    justifyContent: 'space-between', // Başlık ile buton arasında boşluk bırak
-    alignItems: 'center', // Dikeyde ortalama
-    backgroundColor: 'lightgrey',
+    flexDirection: 'row',
+    backgroundColor: '#fff',
     borderRadius: 15,
     padding: 20,
+    alignItems: 'center',
 
+    // Gölge (iOS + Android)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 3
   },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
-    flex: 1, // Başlık ile buton arasında yer paylaşımı
-
-  },
-  input: {
-    height: 50,
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginVertical: 10,
-  },
-  tableContainer: {
-    backgroundColor: '#fff',
-    marginBottom: 15,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  tableTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    marginTop: 10,
-  },
-  editButton: {
-    flex: 7, // %70 genişlik
-    backgroundColor: '#28a745', // Yeşil
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 5, // Aralarındaki boşluk
-  },
-  editButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  deleteButton: {
-    flex: 3, // %30 genişlik
-    backgroundColor: '#ff4d4f', // Kırmızı
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  saveButton: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#2F5D8E',
+    flex: 1 // Başlık ile buton arasında yer paylaşımı
   },
   circleButton: {
     width: 40,
     height: 40,
-    borderRadius: 20, // Yuvarlak buton
+    borderRadius: 20,
     backgroundColor: '#28a745',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   circleButtonText: {
     color: '#fff',
     fontSize: 24,
-    fontWeight: 'bold',
-  },
-  valueSection: {
-    marginTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    fontWeight: 'bold'
   },
   guideButton: {
     marginLeft: 10,
     flex: 0,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  valueButton: {
-    marginLeft: 10,
-    flex: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   formContainer: {
-    marginTop: 20,
+    backgroundColor: '#fff',
+    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+
+    // Gölge (form alanına da ekleyebiliriz)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+    marginBottom: 10
+  },
+  input: {
+    height: 48,
+    backgroundColor: '#F9F9FC',
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#CCC'
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#CCC',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 15,
+    backgroundColor: '#F9F9FC'
+  },
+  picker: {
+    height: 48
+  },
+  saveButton: {
+    backgroundColor: '#5A8FCB',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center'
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600'
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2F5D8E',
+    marginVertical: 10
   },
   guideItem: {
-    padding: 15,
     backgroundColor: '#fff',
-    marginBottom: 5,
-    borderRadius: 8,
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#ddd',
-    marginTop: 5,
+
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 2.5,
+    elevation: 2
   },
   guideTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#2F5D8E'
   },
   guideDescription: {
-    fontSize: 16,
-    marginVertical: 5,
+    fontSize: 15,
+    color: '#555',
+    marginVertical: 5
   },
+  actionButtons: {
+    flexDirection: 'row',
+    marginTop: 10
+  },
+  editButton: {
+    flex: 7,
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 5,
 
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 12, // Köşeleri yuvarlama
-    overflow: 'hidden', // Taşan köşeleri gizle
-    marginBottom: 12,
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.5,
+    elevation: 2
   },
-  picker: {
-    backgroundColor: '#fff',
-    height: 50,
+  editButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700'
   },
+  deleteButton: {
+    flex: 3,
+    backgroundColor: '#ff4d4f',
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
 
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.5,
+    elevation: 2
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700'
+  }
 });
-export default GuidesScreen;

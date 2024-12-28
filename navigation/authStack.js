@@ -11,7 +11,7 @@ export default function AuthStack() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
-        options={{ title: 'Giriş' }}
+        options={{ title: 'Tahlilim Uygulaması' }}
       />
       <Stack.Screen
         name="Register"

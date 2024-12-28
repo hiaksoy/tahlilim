@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getAllUsers } from '../services/aUsersService'; // Kullanıcıları alacak fonksiyonu import ettik
+import { getAllUsers } from '../services/aUsersService';
 
 const UsersScreen = () => {
   const navigation = useNavigation();
-  const [users, setUsers] = useState([]);  // Kullanıcıları tutan state
-  const [expandedUser, setExpandedUser] = useState(null); // Açılan kullanıcının bilgilerini tutacak
+  const [users, setUsers] = useState([]);
+  const [expandedUser, setExpandedUser] = useState(null);
 
   const fetchUsers = async () => {
     try {
-      const data = await getAllUsers(); // Kullanıcıları al
-      setUsers(data);  // Kullanıcıları state'e kaydet
+      const data = await getAllUsers();
+      setUsers(data);
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kullanıcılar alınamadı.');
     }
@@ -22,19 +22,19 @@ const UsersScreen = () => {
   }, []);
 
   const handleToggleExpand = (userId) => {
-    setExpandedUser(expandedUser === userId ? null : userId); // Kullanıcıyı aç/kapat
+    setExpandedUser(expandedUser === userId ? null : userId);
   };
 
-  const handleShowTests = (userId) => {
-    navigation.navigate('ShowUserTests', { userId: userId }); // Kullanıcı detaylarına git
+  const handleShowTests = (userId, birthDate) => {
+    navigation.navigate('ShowUserTests', { userId, birthDate });
   };
 
   const handleEditUser = (userId) => {
-    navigation.navigate('EditUser', { userId }); // Kullanıcıyı düzenlemeye git
+    navigation.navigate('EditUser', { userId });
   };
 
   const handleAddTest = (userId) => {
-    navigation.navigate('AddTest', { userId }); // Kullanıcıyı düzenlemeye git
+    navigation.navigate('AddTest', { userId });
   };
 
   return (
@@ -46,21 +46,25 @@ const UsersScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.userItem}>
-            {/* Kullanıcı adı ve soyadı */}
             <TouchableOpacity onPress={() => handleToggleExpand(item.id)}>
-              <Text style={styles.userName}>{`${item.name} ${item.surname}`}</Text>
+              <Text style={styles.userName}>
+                {`${item.name} ${item.surname}`}
+              </Text>
             </TouchableOpacity>
 
-            {/* Eğer kullanıcı açılmışsa, detayları göster */}
             {expandedUser === item.id && (
               <View style={styles.userDetails}>
-                <Text style={styles.userDetailText}>Doğum Tarihi: {item.birthDate}</Text>
-                <Text style={styles.userDetailText}>Cinsiyet: {item.gender}</Text>
-                <Text style={styles.userDetailText}>Tc Kimlik No: {item.tcNo}</Text>
-
+                <Text style={styles.userDetailText}>
+                  Doğum Tarihi: {item.birthDate}
+                </Text>
+                <Text style={styles.userDetailText}>
+                  Cinsiyet: {item.gender}
+                </Text>
+                <Text style={styles.userDetailText}>
+                  Tc Kimlik No: {item.tcNo}
+                </Text>
 
                 <View style={styles.actionButtons}>
-                  {/* Düzenle Butonu */}
                   <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditUser(item.id)}
@@ -68,16 +72,14 @@ const UsersScreen = () => {
                     <Text style={styles.editButtonText}>Düzenle</Text>
                   </TouchableOpacity>
 
-                  {/* Görüntüle Butonu */}
                   <TouchableOpacity
                     style={styles.viewButton}
-                    onPress={() => handleShowTests(item.id)}
+                    onPress={() => handleShowTests(item.id, item.birthDate)}
                   >
                     <Text style={styles.viewButtonText}>Tahliller</Text>
                   </TouchableOpacity>
 
-                   {/* Tahlil Butonu */}
-                   <TouchableOpacity
+                  <TouchableOpacity
                     style={styles.viewButton}
                     onPress={() => handleAddTest(item.id)}
                   >
@@ -93,75 +95,102 @@ const UsersScreen = () => {
   );
 };
 
+export default UsersScreen;
+
+// ---------------------------------------------------------------------
+// STYLES
+// ---------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F3F8FE',  // Pastel mavi arka plan
+    padding: 20
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 15,
+    color: '#2F5D8E',
+    marginVertical: 10,
+    textAlign: 'center'
   },
   userItem: {
-    padding: 15,
     backgroundColor: '#fff',
-    marginBottom: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderRadius: 12,
+    padding: 14,
+    marginVertical: 8,
+
+    // Gölge (iOS + Android)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 3
   },
   userName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#333'
   },
   userDetails: {
     marginTop: 10,
-    paddingTop: 10,
-    paddingLeft: 10,
-    paddingRight: 10,
-    paddingBottom: 15,
     backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#eee',
+    padding: 10,
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1
   },
   userDetailText: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 15,
+    color: '#555',
+    marginBottom: 5
   },
   actionButtons: {
     flexDirection: 'row',
     marginTop: 10,
-    justifyContent: 'space-between',
+    justifyContent: 'space-between'
   },
   editButton: {
     flex: 0.48,
     backgroundColor: '#28a745',
     padding: 10,
-    borderRadius: 5,
-    justifyContent: 'center',
+    borderRadius: 6,
     alignItems: 'center',
+
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 2
   },
   editButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '600'
   },
   viewButton: {
     flex: 0.48,
-    backgroundColor: '#007BFF',
+    backgroundColor: '#5A8FCB',
     padding: 10,
-    borderRadius: 5,
-    justifyContent: 'center',
+    borderRadius: 6,
     alignItems: 'center',
+
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 2
   },
   viewButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+    fontSize: 15,
+    fontWeight: '600'
+  }
 });
-
-export default UsersScreen;

@@ -6,14 +6,14 @@ import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../configs/authContext';
 
 const DashboardScreen = () => {
-  const { setUser } = useContext(AuthContext); // AuthContext'ten setUser fonksiyonunu alın
+  const { setUser } = useContext(AuthContext);
   const user = auth.currentUser;
   const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Firebase'den çıkış yap
-      setUser(null); // Kullanıcıyı sıfırla
+      await signOut(auth);
+      setUser(null);
     } catch (error) {
       Alert.alert('Çıkış Hatası', error.message || 'Çıkış yapılamadı.');
     }
@@ -35,10 +35,14 @@ const DashboardScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Hoşgeldiniz</Text>
       {user && (
-        <Text style={styles.email}>
-          {`Giriş Yapmış Kullanıcı: ${user.email}`}
-        </Text>
+        <View style={styles.userInfoContainer}>
+          <Text style={styles.userInfoText}>
+            Giriş Yapmış Kullanıcı:{'\n'}
+            <Text style={styles.userEmail}>{user.email}</Text>
+          </Text>
+        </View>
       )}
+
       <TouchableOpacity style={styles.button} onPress={goToGuides}>
         <Text style={styles.buttonText}>Kılavuzlar Sayfasına Git</Text>
       </TouchableOpacity>
@@ -52,54 +56,96 @@ const DashboardScreen = () => {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Çıkış Yap</Text>
+        <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
+export default DashboardScreen;
+
+// ---------------------------------------------------------------------
+// STYLES
+// ---------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#F3F8FE', // Önceki sayfalara uyumlu pastel mavi arkaplan
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 50
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
+    color: '#2F5D8E',
+    marginBottom: 30,
+    textAlign: 'center'
   },
-  email: {
-    fontSize: 18,
+  userInfoContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     marginBottom: 20,
-    color: '#555',
+
+    // iOS gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+
+    // Android gölge
+    elevation: 3
+  },
+  userInfoText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center'
+  },
+  userEmail: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2F5D8E'
   },
   button: {
     width: '80%',
-    height: 50,
-    backgroundColor: '#007BFF',
-    justifyContent: 'center',
+    backgroundColor: '#5A8FCB',
+    borderRadius: 10,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  logoutButton: {
-    width: '80%',
-    height: 50,
-    backgroundColor: '#ff4d4f',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 15,
+    marginVertical: 8,
+
+    // Gölge (iOS + Android)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 3
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600'
   },
-});
+  logoutButton: {
+    width: '80%',
+    backgroundColor: '#ff4d4f',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 20,
 
-export default DashboardScreen;
+    // Gölge (iOS + Android)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 3
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700'
+  }
+});
