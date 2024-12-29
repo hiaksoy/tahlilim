@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  FlatList,
-} from 'react-native';
-import { addValuesToRef, getAllRefsWithValues } from '../services/aDegerlerService';
-import { getGuideById } from '../services/aGuidesService';
-import { removeValueFromRef } from '../services/aValuesService';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList, } from 'react-native';
+import { addValuesToRef, getAllRefsWithValues } from '../services/ReferencesService';
+import { getGuideById } from '../services/GuidesService';
+import { removeValueFromRef } from '../services/ValuesService';
 import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 
 const EditGuideScreen = ({ route, navigation }) => {
@@ -42,25 +34,6 @@ const EditGuideScreen = ({ route, navigation }) => {
     }, [guideId, refName]) // Dependencies
   );
 
-  // Remove the initial useEffect as useFocusEffect handles data fetching
-  /*
-  useEffect(() => {
-    const fetchGuide = async () => {
-      try {
-        const allRefValues = await getAllRefsWithValues(guideId, refName);
-        setAllRefValues(allRefValues);
-
-        const guideData = await getGuideById(guideId);
-        setGuide(guideData);
-      } catch (error) {
-        Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
-      }
-    };
-    fetchGuide();
-  }, [refName]);
-  */
-
-  // No changes needed in fetchGuide function
 
   const handleAddRefFields = async () => {
     if (!minAge.trim() || !maxAge.trim() || !minValue.trim() || !maxValue.trim()) {
@@ -230,9 +203,8 @@ const EditGuideScreen = ({ route, navigation }) => {
             <Text style={styles.tableValue}>
               {item.minAge < 12 && item.maxAge < 12
                 ? `${item.minAge} - ${item.maxAge} Aylık`
-                : `${item.minAge >= 12 ? item.minAge / 12 : item.minAge} - ${
-                    item.maxAge >= 12 ? item.maxAge / 12 : item.maxAge
-                  } Yaşlarında (${item.minAge} - ${item.maxAge} Aylık)`}
+                : `${item.minAge >= 12 ? item.minAge / 12 : item.minAge} - ${item.maxAge >= 12 ? item.maxAge / 12 : item.maxAge
+                } Yaşlarında (${item.minAge} - ${item.maxAge} Aylık)`}
             </Text>
 
             <Text style={styles.tableTitle}>Referans Değer Aralığı</Text>

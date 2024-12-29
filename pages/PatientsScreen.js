@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getUsersWithRoleUser } from '../services/aUsersService';
+import { getUsersWithRoleUser } from '../services/UsersService';
 
 const PatientsScreen = () => {
   const navigation = useNavigation();
@@ -36,7 +36,6 @@ const PatientsScreen = () => {
   const handleAddTest = (userId) => {
     navigation.navigate('AddTest', { userId });
   };
-
 
 
   return (

@@ -1,15 +1,5 @@
 import React, { useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  ScrollView,
-  StatusBar,
-  Platform,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView, StatusBar, Platform, } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { loginUser } from '../services/authService';
 import { AuthContext } from '../configs/authContext';
@@ -102,14 +92,14 @@ const LoginScreen = () => {
     // Türkiye saat dilimini UTC+3 olarak ayarlıyoruz
     const bugunTR = new Date(bugun.getTime() + (3 * 60 * 60 * 1000));
     const dtTR = new Date(dt.getTime() + (3 * 60 * 60 * 1000));
-  
+
     const yilFarki = bugunTR.getFullYear() - dtTR.getFullYear();
     const ayFarki = bugunTR.getMonth() - dtTR.getMonth();
-  
+
     // Eğer gün, ay içinde dolmamışsa 1 ay çıkar
     const gunFarki = bugunTR.getDate() - dtTR.getDate();
     const toplamAy = yilFarki * 12 + ayFarki - (gunFarki < 0 ? 1 : 0);
-  
+
     return toplamAy;
   };
 

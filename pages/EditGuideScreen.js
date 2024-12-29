@@ -1,19 +1,9 @@
-// EditGuideScreen.js
-
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  FlatList
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
 import { REFS, BASES } from '../shared/consts';
 import { Picker } from '@react-native-picker/picker';
-import { updateGuide, getGuideById } from '../services/aGuidesService';
-import { addRef, getAllRefs, deleteRef } from '../services/aDegerlerService'; // Ensure deleteRef is imported
+import { updateGuide, getGuideById } from '../services/GuidesService';
+import { addRef, getAllRefs, deleteRef } from '../services/ReferencesService';
 
 const EditGuideScreen = ({ route, navigation }) => {
   const { guideId } = route.params;
@@ -88,10 +78,7 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
-  /**
-   * Handles the deletion of a reference.
-   * @param {string} refName - The name of the reference to delete.
-   */
+
   const handleDeleteRef = async (refName) => {
     Alert.alert(
       'Silme Onayı',

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import { addTahlil } from '../services/aTahlillerService';
+import { addTahlil } from '../services/TahlillerService';
 import { REFS } from '../shared/consts';
 import { useNavigation } from '@react-navigation/native';
 

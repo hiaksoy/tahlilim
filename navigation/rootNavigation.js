@@ -3,7 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import AdminStack from './adminStack';
 import UserStack from './userStack';
 import AuthStack from './authStack';
-import { getUserByEmail } from '../services/aUsersService';
+import { getUserByEmail } from '../services/UsersService';
 import { AuthContext } from '../configs/authContext';
 
 const RootNavigation = () => {

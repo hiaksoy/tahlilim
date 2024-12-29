@@ -9,7 +9,7 @@ import {
   StyleSheet
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { addGuide, getAllGuides, deleteGuide } from '../services/aGuidesService';
+import { addGuide, getAllGuides, deleteGuide } from '../services/GuidesService';
 import { BASES } from '../shared/consts';
 import { Picker } from '@react-native-picker/picker';
 

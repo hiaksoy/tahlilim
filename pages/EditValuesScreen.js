@@ -8,8 +8,8 @@ import {
   StyleSheet,
   ScrollView
 } from 'react-native';
-import { updateValueInRef } from '../services/aValuesService';
-import { getGuideById } from '../services/aGuidesService';
+import { updateValueInRef } from '../services/ValuesService';
+import { getGuideById } from '../services/GuidesService';
 
 const EditValuesScreen = ({ route, navigation }) => {
   const { guideId, refName, minAge, maxAge, minValue, maxValue } = route.params;

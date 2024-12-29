@@ -4,7 +4,7 @@ import { useRoute } from '@react-navigation/native';
 
 import { db } from '../configs/firebase_config';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
-import { getUserById } from '../services/aUsersService';
+import { getUserById } from '../services/UsersService';
 
 const parseDateString = (dateString) => {
   if (!dateString) return null;

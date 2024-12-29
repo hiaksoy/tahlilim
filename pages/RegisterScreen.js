@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  Platform,
-  ScrollView
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { registerUser } from '../services/authService';
@@ -30,15 +20,15 @@ const RegisterScreen = () => {
   const navigation = useNavigation();
 
   const handleRegister = async () => {
-    // if (!name || !surname || !tcNo || !email || !password || !confirmPassword || !gender) {
-    //   Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
-    //   return;
-    // }
+    if (!name || !surname || !tcNo || !email || !password || !confirmPassword || !gender) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      return;
+    }
 
-    // if (password !== confirmPassword) {
-    //   Alert.alert('Hata', 'Şifreler eşleşmiyor.');
-    //   return;
-    // }
+    if (password !== confirmPassword) {
+      Alert.alert('Hata', 'Şifreler eşleşmiyor.');
+      return;
+    }
 
     try {
       // Firebase Authentication ile kullanıcı kaydı
