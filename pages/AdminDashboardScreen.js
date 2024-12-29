@@ -4,8 +4,9 @@ import { auth } from '../configs/firebase_config';
 import { signOut } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../configs/authContext';
+import { FontAwesome5 } from '@expo/vector-icons';
 
-const DashboardScreen = () => {
+const AdminDashboardScreen = () => {
   const { setUser } = useContext(AuthContext);
   const user = auth.currentUser;
   const navigation = useNavigation();
@@ -43,26 +44,33 @@ const DashboardScreen = () => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.button} onPress={goToGuides}>
-        <Text style={styles.buttonText}>Kılavuzlar Sayfasına Git</Text>
-      </TouchableOpacity>
+      <View style={styles.gridContainer}>
+        <TouchableOpacity style={styles.gridItem} onPress={goToFastSearch}>
+          <FontAwesome5 name="search" size={40} color="#fff" />
+          <Text style={styles.gridItemText}>Hızlı Arama</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={goToUsers}>
-        <Text style={styles.buttonText}>Kullanıcılar</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.gridItem} onPress={goToGuides}>
+          <FontAwesome5 name="book" size={40} color="#fff" />
+          <Text style={styles.gridItemText}>Kılavuzlar</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={goToFastSearch}>
-        <Text style={styles.buttonText}>Hızlı Arama</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.gridItem} onPress={goToUsers}>
+          <FontAwesome5 name="users" size={40} color="#fff" />
+          <Text style={styles.gridItemText}>Kullanıcılar</Text>
+        </TouchableOpacity>
+      </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
-      </TouchableOpacity>
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
-export default DashboardScreen;
+export default AdminDashboardScreen;
 
 // ---------------------------------------------------------------------
 // STYLES
@@ -70,17 +78,17 @@ export default DashboardScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F8FE', // Önceki sayfalara uyumlu pastel mavi arkaplan
+    backgroundColor: '#F3F8FE',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 50
+    paddingTop: 50,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#2F5D8E',
-    marginBottom: 30,
-    textAlign: 'center'
+    marginBottom: 20,
+    textAlign: 'center',
   },
   userInfoContainer: {
     backgroundColor: '#fff',
@@ -88,64 +96,70 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     marginBottom: 20,
-
-    // iOS gölge
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 3.5,
-
-    // Android gölge
-    elevation: 3
+    elevation: 3,
   },
   userInfoText: {
     fontSize: 16,
     color: '#333',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   userEmail: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2F5D8E'
+    color: '#2F5D8E',
   },
-  button: {
-    width: '80%',
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 20,
+  },
+  gridItem: {
+    width: '45%',
     backgroundColor: '#5A8FCB',
-    borderRadius: 10,
-    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
-    marginVertical: 8,
-
-    // Gölge (iOS + Android)
+    paddingVertical: 20,
+    marginVertical: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3.5,
-    elevation: 3
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  buttonText: {
+  gridItemText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600'
+    fontWeight: '600',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30, // Butonun yukarı taşınması için ayarlandı
+    width: '100%',
+    alignItems: 'center',
   },
   logoutButton: {
-    width: '80%',
+    width: '90%',
     backgroundColor: '#ff4d4f',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 20,
-
-    // Gölge (iOS + Android)
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 3.5,
-    elevation: 3
+    elevation: 3,
   },
   logoutButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700'
-  }
+    fontWeight: '700',
+  },
 });

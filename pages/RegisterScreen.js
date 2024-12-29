@@ -30,15 +30,15 @@ const RegisterScreen = () => {
   const navigation = useNavigation();
 
   const handleRegister = async () => {
-    if (!name || !surname || !tcNo || !email || !password || !confirmPassword || !gender) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
-      return;
-    }
+    // if (!name || !surname || !tcNo || !email || !password || !confirmPassword || !gender) {
+    //   Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+    //   return;
+    // }
 
-    if (password !== confirmPassword) {
-      Alert.alert('Hata', 'Şifreler eşleşmiyor.');
-      return;
-    }
+    // if (password !== confirmPassword) {
+    //   Alert.alert('Hata', 'Şifreler eşleşmiyor.');
+    //   return;
+    // }
 
     try {
       // Firebase Authentication ile kullanıcı kaydı

@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert
-} from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { addTahlil } from '../services/aTahlillerService';
@@ -57,9 +48,11 @@ const AddTestScreen = ({ route }) => {
     const updatedDegerler = degerler.filter((_, i) => i !== index);
     setDegerler(updatedDegerler);
   };
+  
   const addDeger = () => {
     setDegerler([...degerler, { ad: REFS[0], sonuc: '' }]);
   };
+
   const updateDeger = (index, key, value) => {
     const updatedDegerler = [...degerler];
     updatedDegerler[index][key] = value;

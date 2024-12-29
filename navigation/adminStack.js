@@ -1,24 +1,23 @@
-// adminStack.js
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import DashboardScreen from '../pages/DashboardScreen';
+import AdminDashboardScreen from '../pages/AdminDashboardScreen';
 import GuidesScreen from '../pages/GuidesScreen';
 import EditGuideScreen from '../pages/EditGuideScreen';
 import EditRefScreen from '../pages/EditRefScreen';
 import EditValuesScreen from '../pages/EditValuesScreen';
-import RegisterScreen from '../pages/RegisterScreen';
 import UsersScreen from '../pages/UsersScreen';
 import AddTestScreen from '../pages/AddTestScreen';
 import ShowUserTestsScreen from '../pages/ShowUserTestsScreen';
-import HomeScreen from '../pages/HomeScreen';
+import FastSearch from '../pages/FastSearchScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AdminStack() {
+
   return (
-    // Dikkat: NavigationContainer yok. Sadece Stack.Navigator var.
+
     <Stack.Navigator
-    initialRouteName="Dashboard" // Varsayılan ekran olarak Dashboard ayarlanır
+      initialRouteName="AdminDashboard"
       screenOptions={{
         headerStyle: {
           backgroundColor: '#C8C6C6',
@@ -30,9 +29,9 @@ export default function AdminStack() {
       }}
     >
       <Stack.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{ title: 'Gösterge Paneli' }}
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
+        options={{ title: 'Doktor Gösterge Paneli' }}
       />
       <Stack.Screen
         name="Guides"
@@ -55,11 +54,6 @@ export default function AdminStack() {
         options={{ title: 'Değerleri Düzenle' }}
       />
       <Stack.Screen
-        name="Register"
-        component={RegisterScreen}
-        options={{ title: 'Kayıt Ol' }}
-      />
-      <Stack.Screen
         name="Users"
         component={UsersScreen}
         options={{ title: 'Kullanıcılar' }}
@@ -76,20 +70,10 @@ export default function AdminStack() {
       />
       <Stack.Screen
         name="Home"
-        component={HomeScreen}
-        options={{ title: 'Ana Sayfa' }}
+        component={FastSearch}
+        options={{ title: 'Hızlı Arama' }}
       />
-      {/* Eğer AdminStack içinde Home veya Login’i de kullanmak istiyorsanız ekleyebilirsiniz */}
-      {/* <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ title: 'Ana Sayfa' }}
-      />
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ title: 'Giriş Yap' }}
-      /> */}
+
     </Stack.Navigator>
   );
 }

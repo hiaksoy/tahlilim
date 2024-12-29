@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { auth } from '../configs/firebase_config';
 import AdminStack from './adminStack';
 import UserStack from './userStack';
 import AuthStack from './authStack';

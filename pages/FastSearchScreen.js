@@ -1,19 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  StatusBar,
-  Platform,
-} from 'react-native';
-
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Platform, } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { db } from '../configs/firebase_config'; 
+import { db } from '../configs/firebase_config';
 import { collection, getDocs } from 'firebase/firestore'; // Gerektiğinde açabilirsin.
 
 import { REFS } from '../shared/consts'; // Mevcut dosyandaki değerler listesi.
@@ -21,7 +10,7 @@ import { REFS } from '../shared/consts'; // Mevcut dosyandaki değerler listesi.
 // ---------------------------------------------------------------------
 // ANA BİLEŞEN
 // ---------------------------------------------------------------------
-export default function HomeScreen() {
+export default function FastSearch() {
   const [degerler, setDegerler] = useState([{ ad: REFS[0], sonuc: '' }]);
   const [dogumTarihi, setDogumTarihi] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -157,7 +146,7 @@ export default function HomeScreen() {
                 : 'Doğum Tarihi Seçiniz'}
             </Text>
           </TouchableOpacity>
-          
+
           {showDatePicker && (
             <DateTimePicker
               value={dogumTarihi || new Date()}
