@@ -15,7 +15,6 @@ export const addRef = async (guideId, name) => {
       [`Degerler.${name}`]: arrayUnion()  // Boş bir array ekleniyor
     });
 
-    console.log("Degerler alanına boş array eklendi:", valueId);
     return valueId; // Yeni oluşturulan ID döndürülür
   } catch (error) {
     console.error("Degerler alanına değer eklenirken hata:", error);
@@ -57,7 +56,6 @@ export const getAllRefs = async (guideId) => {
       }
     }
 
-    console.log("Degerler altındaki tüm arraylerin anahtarları:", result);
     return result;  // Keylerle dolu bir array döndürülür
   } catch (error) {
     console.error("Degerler alınırken hata:", error);
@@ -83,8 +81,6 @@ export const addValuesToRef = async (guideId, refName, minAge, maxAge, minValue,
       [`Degerler.${refName}`]: arrayUnion(newValue)  // Key ile belirtilen map altına array elemanı ekleme
     });
 
-    console.log(refName);
-    console.log("Degerler alanına yeni değer eklendi:", newValue);
     return newValue; // Yeni değer döndürülür
   } catch (error) {
     console.error("Degerler alanına değer eklenirken hata:", error);
@@ -124,7 +120,6 @@ export const getAllRefsWithValues = async (guideId, name) => {
       maxValue: item.maxValue
     }));
 
-    console.log("Array elemanları ve değerleri:", result);
     return result; // Yalnızca minAge, maxAge, minValue, maxValue döndürülür
   } catch (error) {
     console.error("Degerler alınırken hata:", error);
@@ -147,7 +142,6 @@ export const updateValueInRef = async (guideId, refName, oldValue, newValue) => 
       [`Degerler.${refName}`]: arrayUnion(newValue), // Yeni değeri ekle
     });
 
-    console.log("Degerler alanındaki değer güncellendi:", newValue);
     return newValue; // Güncellenen değer döndürülür
   } catch (error) {
     console.error("Degerler alanında değer güncellenirken hata:", error);
@@ -165,7 +159,6 @@ export const removeValueFromRef = async (guideId, refName, valueToRemove) => {
       [`Degerler.${refName}`]: arrayRemove(valueToRemove),
     });
 
-    console.log("Degerler alanından değer silindi:", valueToRemove);
     return valueToRemove; // Silinen değer döndürülür
   } catch (error) {
     console.error("Degerler alanında değer silinirken hata:", error);
@@ -183,7 +176,6 @@ export const deleteRef = async (guideId, refName) => {
       [`Degerler.${refName}`]: deleteField(),
     });
 
-    console.log(`Referans '${refName}' silindi.`);
   } catch (error) {
     console.error(`Referans '${refName}' silinirken hata:`, error);
     throw new Error("Referans silinirken hata oluştu.");

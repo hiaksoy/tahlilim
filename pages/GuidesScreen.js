@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  Alert,
-  StyleSheet
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { addGuide, getAllGuides, deleteGuide } from '../services/GuidesService';
 import { BASES } from '../shared/consts';
@@ -26,7 +18,6 @@ const GuidesScreen = () => {
       const data = await getAllGuides();
       setGuides(data);
       setBase(BASES[0]);
-      console.log(data);
     } catch (error) {
       Alert.alert('Hata', error.message || 'Veriler alınamadı.');
     }

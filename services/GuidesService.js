@@ -15,7 +15,6 @@ export const addGuide = async (title, description,base) => {
     // Kılavuz verisini Firestore'a ekle
     const docRef = await addDoc(collection(db, 'Kılavuzlar'), { ...newGuide });
 
-    console.log("Kılavuz eklendi:", docRef.id);  // Yeni kılavuzun id'si loglanır
     return docRef.id;  // Yeni kılavuzun id'si döndürülür
   } catch (error) {
     console.error("Kılavuz eklenirken hata:", error);
@@ -62,7 +61,6 @@ export const updateGuide = async (id, title, description, base) => {
     // Firestore'da belgeyi güncelle
     await updateDoc(guideRef, updatedGuide);
 
-    console.log("Kılavuz güncellendi:", id);  // Güncellenen kılavuzun id'si loglanır
     return id;  // Güncellenen kılavuzun id'si döndürülür
   } catch (error) {
     console.error("Kılavuz güncellenirken hata:", error);
@@ -92,7 +90,6 @@ export const getGuideById = async (id) => {
       createdAt: guideData.createdAt,
     };
 
-    console.log("Kılavuz verisi:", result);
     return result;  // Sadece title, description ve createdAt özelliklerini döndüren nesne
   } catch (error) {
     console.error("Kılavuz alınırken hata:", error);

@@ -16,10 +16,8 @@ export const updateValueInRef = async (guideId, refName, oldValue, newValue) => 
         [`Degerler.${refName}`]: arrayUnion(newValue), // Yeni değeri ekle
       });
   
-      console.log("Degerler alanındaki değer güncellendi:", newValue);
       return newValue; // Güncellenen değer döndürülür
     } catch (error) {
-        console.log(guideId, refName, oldValue, newValue);
       console.error("Degerler alanında değer güncellenirken hata:", error);
       throw new Error("Degerler alanında değer güncellenirken hata oluştu.");
     }
@@ -37,7 +35,6 @@ export const updateValueInRef = async (guideId, refName, oldValue, newValue) => 
         [`Degerler.${refName}`]: arrayRemove(valueToRemove),
       });
   
-      console.log("Degerler alanından değer silindi:", valueToRemove);
       return valueToRemove; // Silinen değer döndürülür
     } catch (error) {
       console.error("Degerler alanında değer silinirken hata:", error);

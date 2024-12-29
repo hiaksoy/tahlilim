@@ -1,21 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  ScrollView
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native';
 import { updateValueInRef } from '../services/ValuesService';
 import { getGuideById } from '../services/GuidesService';
 
 const EditValuesScreen = ({ route, navigation }) => {
   const { guideId, refName, minAge, maxAge, minValue, maxValue } = route.params;
 
-  // Ekranda gösterilen metin kutuları (newMinValue, newMaxValue)
-  // Bu form değerlerini, "base" durumuna göre set edeceğiz.
   const [newMinAge, setNewMinAge] = useState(minAge?.toString() || '');
   const [newMaxAge, setNewMaxAge] = useState(maxAge?.toString() || '');
 
