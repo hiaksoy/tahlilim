@@ -1,5 +1,15 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView, StatusBar, Platform, } from 'react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  Alert, 
+  StyleSheet, 
+  ScrollView, 
+  StatusBar, 
+  Platform
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { loginUser } from '../services/authService';
 import { AuthContext } from '../configs/authContext';
@@ -11,7 +21,7 @@ import { db } from '../configs/firebase_config';
 import { collection, getDocs } from 'firebase/firestore';
 import { REFS } from '../shared/consts';
 
-const LoginScreen = () => {
+export default function LoginScreen() {
   // ----------------------------------------------------------------------------
   // 1) LOGIN FORM İLE İLGİLİ STATE’LER
   // ----------------------------------------------------------------------------
@@ -41,9 +51,39 @@ const LoginScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [sonuclar, setSonuclar] = useState([]);
 
+  // (YENİ) Kılavuzları seçme state’leri
+  const [allGuides, setAllGuides] = useState([]);  // DB'den çekilen kılavuzlar
+  const [selectedGuideIds, setSelectedGuideIds] = useState([]); // Seçilen kılavuzların id listesi
+  const [isAllSelected, setIsAllSelected] = useState(false);    // Tümünü seç
+  // Açılır/kapanır state
+  const [showGuideSelection, setShowGuideSelection] = useState(false);
+
+  // Kılavuzları DB'den çek
+  useEffect(() => {
+    const fetchGuides = async () => {
+      try {
+        const snap = await getDocs(collection(db, 'Kılavuzlar'));
+        let temp = [];
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          temp.push({
+            id: docSnap.id,
+            title: data.title || docSnap.id,
+            base: data.base || 'N/A',
+          });
+        });
+        setAllGuides(temp);
+      } catch (err) {
+        console.log('Kılavuzlar alınırken hata:', err);
+      }
+    };
+    fetchGuides();
+  }, []);
+
   // ----------------------------------------------------------------------------
   // 3) HIZLI ARAMA İÇİN GEREKLİ FONKSİYONLAR
   // ----------------------------------------------------------------------------
+
   const acDatePicker = () => {
     setShowDatePicker(true);
   };
@@ -87,11 +127,25 @@ const LoginScreen = () => {
     }, {});
   };
 
+  // **EKLENDİ**: Duruma göre arka plan rengi
+  const getStatusBgColor = (status) => {
+    switch (status) {
+      case 'Normal':
+        return '#E7F6E7'; // pastel yeşil
+      case 'Düşük':
+        return '#FFF8DB'; // pastel sarı
+      case 'Yüksek':
+        return '#FFE5E5'; // pastel kırmızı
+      default:
+        return '#f1f8e9'; // varsayılan yeşilimsi
+    }
+  };
+
   // Yaş hesaplaması (ay cinsinden)
   const hesaplaAyOlarakYas = (bugun, dt) => {
     // Türkiye saat dilimini UTC+3 olarak ayarlıyoruz
-    const bugunTR = new Date(bugun.getTime() + (3 * 60 * 60 * 1000));
-    const dtTR = new Date(dt.getTime() + (3 * 60 * 60 * 1000));
+    const bugunTR = new Date(bugun.getTime() + 3 * 60 * 60 * 1000);
+    const dtTR = new Date(dt.getTime() + 3 * 60 * 60 * 1000);
 
     const yilFarki = bugunTR.getFullYear() - dtTR.getFullYear();
     const ayFarki = bugunTR.getMonth() - dtTR.getMonth();
@@ -103,7 +157,6 @@ const LoginScreen = () => {
     return toplamAy;
   };
 
-  // "Sorgula" butonuna basılınca
   const sorgula = async () => {
     if (!dogumTarihi) {
       alert('Lütfen doğum tarihi seçiniz.');
@@ -115,6 +168,19 @@ const LoginScreen = () => {
 
       snapshot.forEach((docSnap) => {
         const kilavuzData = docSnap.data();
+        const docId = docSnap.id;
+
+        // Seçim kontrolü (Tümünü Seç veya selectedGuideIds'te var mı?)
+        if (
+          isAllSelected ||
+          (selectedGuideIds.length > 0 && selectedGuideIds.includes(docId))
+        ) {
+          // Bu kılavuza bakıyoruz
+        } else {
+          // Dahil etme
+          return;
+        }
+
         if (!kilavuzData.Degerler) return;
 
         degerler.forEach(({ ad, sonuc }) => {
@@ -147,6 +213,7 @@ const LoginScreen = () => {
                   maxValue: maxVal,
                   status,
                   kilavuzAdi: kilavuzData.title || docSnap.id,
+                  kilavuzBase: kilavuzData.base,
                 });
               }
             });
@@ -161,29 +228,34 @@ const LoginScreen = () => {
     }
   };
 
-  // Duruma göre arka plan rengi
-  const getStatusBgColor = (status) => {
-    switch (status) {
-      case 'Normal':
-        return '#E7F6E7'; // pastel yeşil
-      case 'Düşük':
-        return '#FFF8DB'; // pastel sarı
-      case 'Yüksek':
-        return '#FFE5E5'; // pastel kırmızı
-      default:
-        return '#f1f8e9'; // varsayılan yeşilimsi
+  // Checkbox toggle
+  const toggleGuide = (guideId) => {
+    if (isAllSelected) {
+      setIsAllSelected(false);
+    }
+    if (selectedGuideIds.includes(guideId)) {
+      setSelectedGuideIds(selectedGuideIds.filter((id) => id !== guideId));
+    } else {
+      setSelectedGuideIds([...selectedGuideIds, guideId]);
     }
   };
 
-  // ----------------------------------------------------------------------------
-  // 4) EKRANIN RENDER’I
-  // ----------------------------------------------------------------------------
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setIsAllSelected(false);
+      setSelectedGuideIds([]);
+    } else {
+      setIsAllSelected(true);
+      const allIds = allGuides.map((g) => g.id);
+      setSelectedGuideIds(allIds);
+    }
+  };
+
   return (
     <View style={styles.safeArea}>
       <StatusBar backgroundColor="#F3F8FE" barStyle="dark-content" />
 
       <ScrollView style={styles.mainScrollView}>
-
         {/* ------------------------------------------------------------- */}
         {/* LOGIN FORMUNU AÇ / KAPAT BUTONU */}
         {/* ------------------------------------------------------------- */}
@@ -289,6 +361,45 @@ const LoginScreen = () => {
           </TouchableOpacity>
         </View>
 
+        {/* (YENİ) Sorgulanacak Kılavuzlar Aç/Kapa */}
+        <View style={styles.section}>
+          <TouchableOpacity onPress={() => setShowGuideSelection(!showGuideSelection)}>
+            <Text style={styles.sectionSubTitle}>
+              {showGuideSelection ? '▼ Sorgulanacak Kılavuzlar' : '► Sorgulanacak Kılavuzlar'}
+            </Text>
+          </TouchableOpacity>
+
+          {showGuideSelection && (
+            <View style={styles.guideSelectionContainer}>
+              {/* Tümünü seç */}
+              <TouchableOpacity style={styles.checkBoxRow} onPress={toggleSelectAll}>
+                <View style={[styles.checkBoxBox, isAllSelected && styles.checkBoxBoxChecked]}>
+                  {isAllSelected && <Text style={styles.checkBoxTick}>✓</Text>}
+                </View>
+                <Text style={styles.checkBoxLabel}>Tümünü Seç / Kaldır</Text>
+              </TouchableOpacity>
+
+              {allGuides.map((guide) => {
+                const checked = isAllSelected || selectedGuideIds.includes(guide.id);
+                return (
+                  <TouchableOpacity
+                    key={guide.id}
+                    style={styles.checkBoxRow}
+                    onPress={() => toggleGuide(guide.id)}
+                  >
+                    <View style={[styles.checkBoxBox, checked && styles.checkBoxBoxChecked]}>
+                      {checked && <Text style={styles.checkBoxTick}>✓</Text>}
+                    </View>
+                    <Text style={styles.checkBoxLabel}>
+                      {guide.title} ({guide.base})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
         {/* Sorgu Butonu */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.queryButton} onPress={sorgula}>
@@ -304,7 +415,6 @@ const LoginScreen = () => {
               <View key={ad} style={styles.resultGroup}>
                 <Text style={styles.resultGroupTitle}>{ad}</Text>
                 {items.map((item, idx) => (
-                  // Her sonucun arka planı "Normal / Düşük / Yüksek" durumuna göre
                   <View
                     key={idx}
                     style={[
@@ -317,7 +427,7 @@ const LoginScreen = () => {
                       Referans Aralık: {item.minValue} - {item.maxValue}
                     </Text>
                     <Text>Durum: {item.status}</Text>
-                    <Text>Kılavuz: {item.kilavuzAdi}</Text>
+                    <Text>Kılavuz: {item.kilavuzAdi} ({item.kilavuzBase})</Text>
                     {idx !== items.length - 1 && (
                       <View style={styles.resultDivider} />
                     )}
@@ -330,7 +440,7 @@ const LoginScreen = () => {
       </ScrollView>
     </View>
   );
-};
+}
 
 // ----------------------------------------------------------------------------
 // STYLES
@@ -427,6 +537,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 2,
     elevation: 2,
+  },
+  sectionSubTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2F5D8E',
+    marginBottom: 4,
   },
   section: {
     marginBottom: 20,
@@ -539,7 +655,7 @@ const styles = StyleSheet.create({
   resultGroup: {
     marginBottom: 20,
     padding: 12,
-    backgroundColor: '#f1f8e9',
+    backgroundColor: '#fff',
     borderRadius: 10,
     // Gölge
     shadowColor: '#000',
@@ -558,12 +674,44 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 8,
     borderRadius: 6,
+    // Arka plan rengi durum bazında "getStatusBgColor" ile set edilecek
   },
   resultDivider: {
     height: 1,
     backgroundColor: '#ccc',
     marginVertical: 8,
   },
-});
 
-export default LoginScreen;
+  // (YENİ) Kılavuz Seçimi
+  guideSelectionContainer: {
+    marginTop: 10,
+  },
+  checkBoxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  checkBoxBox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkBoxBoxChecked: {
+    borderColor: '#2F5D8E',
+    backgroundColor: '#2F5D8E',
+  },
+  checkBoxTick: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  checkBoxLabel: {
+    fontSize: 16,
+    color: '#333',
+  },
+});

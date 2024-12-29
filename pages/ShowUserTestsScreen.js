@@ -37,11 +37,13 @@ const formatTimestamp = (timestamp) => {
   const date = timestamp.seconds
     ? new Date(timestamp.seconds * 1000)
     : new Date(timestamp);
+
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
+
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
@@ -57,6 +59,7 @@ const ShowUserTestsScreen = () => {
   const [userName, setUserName] = useState('');
   const [expandedTahliller, setExpandedTahliller] = useState({});
 
+  // 1) Data Fetch
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) {
@@ -70,7 +73,7 @@ const ShowUserTestsScreen = () => {
 
         // Kılavuzlar:
         const kilavuzSnap = await getDocs(collection(db, 'Kılavuzlar'));
-        let tempKilavuzlar = [];
+        const tempKilavuzlar = [];
         kilavuzSnap.forEach((docSnap) => {
           tempKilavuzlar.push({ id: docSnap.id, ...docSnap.data() });
         });
@@ -108,14 +111,18 @@ const ShowUserTestsScreen = () => {
     fetchData();
   }, [userId]);
 
-  // Durum hesaplama (tek tahlil için)
-  const getDurum = (tetkikAd, sonucStr) => {
-    if (!dogumTarihi || isNaN(dogumTarihi.getTime())) return null;
+  // 2) Tüm Kılavuzları tarayarak, tetkikAd + sonucStr'ye uyan
+  //    "durum" nesnelerinin array'ini döndürür.
+  //    {status, minValue, maxValue, kilavuzAdi}
+  const getAllDurum = (tetkikAd, sonucStr) => {
+    if (!dogumTarihi || isNaN(dogumTarihi.getTime())) return [];
 
     const bugun = new Date();
     const ayFarki = hesaplaAyOlarakYas(bugun, dogumTarihi);
     const sonucFloat = parseCommaFloat(sonucStr);
-    if (isNaN(sonucFloat)) return null;
+    if (isNaN(sonucFloat)) return [];
+
+    let results = [];
 
     for (let k of kilavuzlar) {
       if (!k.Degerler) continue;
@@ -133,35 +140,32 @@ const ShowUserTestsScreen = () => {
           if (sonucFloat < minV) status = 'Düşük';
           else if (sonucFloat > maxV) status = 'Yüksek';
 
-          return {
+          results.push({
             status,
             minValue: minV,
             maxValue: maxV,
             kilavuzAdi: k.title || k.id
-          };
+          });
         }
       }
     }
-    return null;
+
+    return results; // Birden fazla kılavuz eşleşmesi dönebilecek
   };
 
-  // (YENİ) Tahliller listesinde, currentTahlil’in index’ini buluyoruz:
-  // Sonra index+1 .. tahliller.length-1 arasındakiler (daha eski tahliller)
-  // Bu tetkik adını bulursak, previousResults’a ekliyoruz; en fazla 3
+  // 3) getPreviousResults (en eski tahlillerde bul)
   const getPreviousResults = (tetkikAd, currentTahlilId) => {
     let previousResults = [];
     const currentIndex = tahliller.findIndex((t) => t.id === currentTahlilId);
     if (currentIndex === -1) return [];
 
-    // Daha eski tahliller = index i > currentIndex
     for (let i = currentIndex + 1; i < tahliller.length; i++) {
       const olderTahlil = tahliller[i];
       if (olderTahlil.degerler && olderTahlil.degerler.length > 0) {
-        // Bu tahlilde "tetkikAd" var mı?
         for (let d of olderTahlil.degerler) {
           if (d.ad === tetkikAd) {
             previousResults.push(d.sonuc);
-            break; // Bu tahlilden sadece 1 tane "d.ad" alalım
+            break;
           }
         }
       }
@@ -171,7 +175,7 @@ const ShowUserTestsScreen = () => {
     return previousResults;
   };
 
-  // Tahlil'i genişlet/gizle
+  // 4) Tahlil Genişletme
   const toggleTahlilExpansion = (id) => {
     setExpandedTahliller((prev) => ({
       ...prev,
@@ -179,7 +183,7 @@ const ShowUserTestsScreen = () => {
     }));
   };
 
-  // Tahlil Sil
+  // 5) Tahlil Sil
   const handleDeleteTahlil = async (id) => {
     try {
       await deleteDoc(doc(db, 'Tahliller', id));
@@ -190,7 +194,7 @@ const ShowUserTestsScreen = () => {
     }
   };
 
-  // Loading
+  // 6) Loading
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -200,7 +204,7 @@ const ShowUserTestsScreen = () => {
     );
   }
 
-  // Render
+  // 7) Render
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{userName} - Hasta Tahlilleri</Text>
@@ -236,7 +240,7 @@ const ShowUserTestsScreen = () => {
                   <Text style={styles.deleteButtonText}>Sil</Text>
                 </TouchableOpacity>
 
-                {/* Rapor No vb. */}
+                {/* Rapor Bilgileri */}
                 <Text style={styles.label}>
                   <Text style={styles.bold}>Rapor No:</Text> {item.raporNo || 'N/A'}
                 </Text>
@@ -266,6 +270,7 @@ const ShowUserTestsScreen = () => {
                   {formatTimestamp(item.uzmanOnayZamani)}
                 </Text>
 
+                {/* Değerler */}
                 {item.degerler?.length > 0 && (
                   <>
                     <TouchableOpacity
@@ -282,17 +287,13 @@ const ShowUserTestsScreen = () => {
                     {expandedTahliller[item.id] && (
                       <View style={styles.degerlerContainer}>
                         {item.degerler.map((d, idx) => {
-                          const calcData = getDurum(d.ad, d.sonuc);
-                          let bgStyle = {};
-                          if (calcData?.status === 'Normal') bgStyle = styles.bgNormal;
-                          else if (calcData?.status === 'Düşük') bgStyle = styles.bgLow;
-                          else if (calcData?.status === 'Yüksek') bgStyle = styles.bgHigh;
-
-                          // önceki sonuçlar
+                          const durumArray = getAllDurum(d.ad, d.sonuc);
                           const previousResults = getPreviousResults(d.ad, item.id);
 
                           return (
-                            <View key={idx} style={[styles.sonucItem, bgStyle]}>
+                            // (A) "sonucGroupCard": Tüm Tetkik Adı / Sonuç / Önceki Sonuçlar / Durum(lar) 
+                            <View key={idx} style={styles.sonucGroupCard}>
+                              {/* Tetkik Adı ve Sonuç */}
                               <Text style={styles.sonucText}>
                                 <Text style={styles.bold}>Tetkik Adı:</Text> {d.ad}
                               </Text>
@@ -312,27 +313,37 @@ const ShowUserTestsScreen = () => {
                                 </View>
                               )}
 
-                              <View style={styles.detayContainer}>
-                                {calcData ? (
-                                  <>
-                                    <Text>
-                                      <Text style={styles.bold}>Durum:</Text> {calcData.status}
-                                    </Text>
-                                    <Text>
-                                      <Text style={styles.bold}>Referans Aralık:</Text>{' '}
-                                      {calcData.minValue} - {calcData.maxValue}
-                                    </Text>
-                                    <Text>
-                                      <Text style={styles.bold}>Kılavuz Adı:</Text>{' '}
-                                      {calcData.kilavuzAdi}
-                                    </Text>
-                                  </>
-                                ) : (
+                              {/* (B) Her kılavuz eşleşmesi için ayrı "durum kartı" */}
+                              {durumArray.length > 0 ? (
+                                durumArray.map((calcData, i2) => {
+                                  let bgStyle = {};
+                                  if (calcData.status === 'Normal') bgStyle = styles.bgNormal;
+                                  else if (calcData.status === 'Düşük') bgStyle = styles.bgLow;
+                                  else if (calcData.status === 'Yüksek') bgStyle = styles.bgHigh;
+
+                                  return (
+                                    <View key={i2} style={[styles.durumCard, bgStyle]}>
+                                      <Text>
+                                        <Text style={styles.bold}>Durum:</Text> {calcData.status}
+                                      </Text>
+                                      <Text>
+                                        <Text style={styles.bold}>Referans Aralık:</Text>{' '}
+                                        {calcData.minValue} - {calcData.maxValue}
+                                      </Text>
+                                      <Text>
+                                        <Text style={styles.bold}>Kılavuz Adı:</Text>{' '}
+                                        {calcData.kilavuzAdi}
+                                      </Text>
+                                    </View>
+                                  );
+                                })
+                              ) : (
+                                <View style={styles.durumCard}>
                                   <Text style={styles.infoText}>
                                     Uygun rehber bilgisi bulunamadı.
                                   </Text>
-                                )}
-                              </View>
+                                </View>
+                              )}
                             </View>
                           );
                         })}
@@ -351,6 +362,9 @@ const ShowUserTestsScreen = () => {
 
 export default ShowUserTestsScreen;
 
+// ---------------------------------------------------------------------
+// STYLES
+// ---------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -419,25 +433,52 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee'
   },
-  sonucItem: {
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 8,
+
+  // (A) Kart görünümü: Tetkik Adı / Sonuç / Önceki Sonuçlar / Alt kılavuz durumları
+  sonucGroupCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#d6d6d6'
+    borderColor: '#ddd',
+    padding: 10,
+    marginBottom: 12,
+
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2
   },
   sonucText: {
     fontSize: 14,
     marginVertical: 2,
     color: '#444'
   },
-  detayContainer: {
-    marginTop: 10,
-    backgroundColor: '#f9f9ff',
+  previousResultsContainer: {
+    marginTop: 8,
+    paddingLeft: 10
+  },
+  previousResultText: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 2
+  },
+
+  // (B) Kılavuz durum "kartı": pastel renk + border
+  durumCard: {
+    marginTop: 8,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 10
+    padding: 10,
+
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.5,
+    elevation: 2
   },
   bgNormal: {
     backgroundColor: '#E7F6E7'
@@ -458,14 +499,5 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: '#fff',
     fontWeight: 'bold'
-  },
-  previousResultsContainer: {
-    marginTop: 8,
-    paddingLeft: 10
-  },
-  previousResultText: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 2
   }
 });

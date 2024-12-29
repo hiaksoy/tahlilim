@@ -1,11 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Platform, } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Platform,
+} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { db } from '../configs/firebase_config';
 import { collection, getDocs } from 'firebase/firestore'; // Gerektiğinde açabilirsin.
-
 import { REFS } from '../shared/consts'; // Mevcut dosyandaki değerler listesi.
+
+// Ekledik: Checkbox benzeri bir bileşen (yalın bir simülasyon)
+// İsterseniz "react-native-checkBox" veya "expo-checkbox" kütüphanesi kullanabilirsiniz.
+function MyCheckBox({ checked, onPress, label }) {
+  return (
+    <TouchableOpacity style={styles.checkBoxRow} onPress={onPress}>
+      <View style={[styles.checkBoxBox, checked && styles.checkBoxBoxChecked]}>
+        {checked && <Text style={styles.checkBoxTick}>✓</Text>}
+      </View>
+      <Text style={styles.checkBoxLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 // ---------------------------------------------------------------------
 // ANA BİLEŞEN
@@ -14,8 +35,37 @@ export default function FastSearch() {
   const [degerler, setDegerler] = useState([{ ad: REFS[0], sonuc: '' }]);
   const [dogumTarihi, setDogumTarihi] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-
   const [sonuclar, setSonuclar] = useState([]);
+
+  // (1) Kılavuz listesi ve seçilen kılavuz state
+  const [allGuides, setAllGuides] = useState([]);           // Tüm kılavuzlar (DB’den alınacak)
+  const [selectedGuideIds, setSelectedGuideIds] = useState([]); // Kullanıcının seçtikleri
+  const [isAllSelected, setIsAllSelected] = useState(false); // "Tümünü Seç" kontrolü
+
+  // (2) Bu bölümü aç/kapat
+  const [showGuideSelection, setShowGuideSelection] = useState(false);
+
+  // DB'deki kılavuzları çek (örnek)
+  useEffect(() => {
+    const fetchGuides = async () => {
+      try {
+        const snap = await getDocs(collection(db, 'Kılavuzlar'));
+        let temp = [];
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          temp.push({
+            id: docSnap.id,
+            title: data.title || docSnap.id,
+            base: data.base || 'N/A', // BASE'i de aldık (yoksa N/A)
+          });
+        });
+        setAllGuides(temp);
+      } catch (err) {
+        console.log('Kılavuzlar alınırken hata:', err);
+      }
+    };
+    fetchGuides();
+  }, []);
 
   const acDatePicker = () => {
     setShowDatePicker(true);
@@ -59,6 +109,36 @@ export default function FastSearch() {
     }, {});
   };
 
+  // Duruma göre arka plan rengi
+  const getStatusBgColor = (status) => {
+    switch (status) {
+      case 'Normal':
+        return '#E7F6E7'; // pastel yeşil
+      case 'Düşük':
+        return '#FFF8DB'; // pastel sarı
+      case 'Yüksek':
+        return '#FFE5E5'; // pastel kırmızı
+      default:
+        return '#f1f8e9'; // varsayılan yeşilimsi
+    }
+  };
+
+  // Yaş hesaplaması (ay cinsinden)
+  const hesaplaAyOlarakYas = (bugun, dt) => {
+    // Türkiye saat dilimini UTC+3 olarak ayarlıyoruz
+    const bugunTR = new Date(bugun.getTime() + 3 * 60 * 60 * 1000);
+    const dtTR = new Date(dt.getTime() + 3 * 60 * 60 * 1000);
+
+    const yilFarki = bugunTR.getFullYear() - dtTR.getFullYear();
+    const ayFarki = bugunTR.getMonth() - dtTR.getMonth();
+
+    // Eğer gün, ay içinde dolmamışsa 1 ay çıkar
+    const gunFarki = bugunTR.getDate() - dtTR.getDate();
+    const toplamAy = yilFarki * 12 + ayFarki - (gunFarki < 0 ? 1 : 0);
+
+    return toplamAy;
+  };
+
   const sorgula = async () => {
     if (!dogumTarihi) {
       alert('Lütfen doğum tarihi seçiniz.');
@@ -71,6 +151,19 @@ export default function FastSearch() {
 
       snapshot.forEach((doc) => {
         const kilavuzData = doc.data();
+        const docId = doc.id;
+
+        // (Önemli) Kontrol: Eğer "Tümünü Seç" ON ise ya da
+        // "selectedGuideIds" boş değil ve doc.id bu listede ise sorguya dahil
+        if (
+          isAllSelected ||
+          (selectedGuideIds.length > 0 && selectedGuideIds.includes(docId))
+        ) {
+          // Devam...
+        } else {
+          // Dışarıda
+          return;
+        }
 
         if (!kilavuzData.Degerler) {
           return;
@@ -90,7 +183,6 @@ export default function FastSearch() {
             arrayNesneler.forEach((item) => {
               const minVal = parseCommaFloat(item.minValue);
               const maxVal = parseCommaFloat(item.maxValue);
-
               const minAge = parseFloat(item.minAge);
               const maxAge = parseFloat(item.maxAge);
 
@@ -109,6 +201,7 @@ export default function FastSearch() {
                   maxValue: maxVal,
                   status,
                   kilavuzAdi: kilavuzData.title,
+                  kilavuzBase: kilavuzData.base,
                 });
               }
             });
@@ -123,21 +216,34 @@ export default function FastSearch() {
     }
   };
 
-  const hesaplaAyOlarakYas = (bugun, dt) => {
-    // Türkiye saat dilimini UTC+3 olarak ayarlıyoruz
-    const bugunTR = new Date(bugun.getTime() + (3 * 60 * 60 * 1000));
-    const dtTR = new Date(dt.getTime() + (3 * 60 * 60 * 1000));
-  
-    const yilFarki = bugunTR.getFullYear() - dtTR.getFullYear();
-    const ayFarki = bugunTR.getMonth() - dtTR.getMonth();
-  
-    // Eğer gün, ay içinde dolmamışsa 1 ay çıkar
-    const gunFarki = bugunTR.getDate() - dtTR.getDate();
-    const toplamAy = yilFarki * 12 + ayFarki - (gunFarki < 0 ? 1 : 0);
-  
-    return toplamAy;
+  // Checkbox toggle
+  const toggleGuide = (guideId) => {
+    // Tümünü Seç devredeyse kapatalım
+    if (isAllSelected) {
+      setIsAllSelected(false);
+    }
+    if (selectedGuideIds.includes(guideId)) {
+      // listeden çıkar
+      setSelectedGuideIds(selectedGuideIds.filter((id) => id !== guideId));
+    } else {
+      // ekle
+      setSelectedGuideIds([...selectedGuideIds, guideId]);
+    }
   };
-  
+
+  const toggleSelectAll = () => {
+    // Tümünü seç ON ise kapatalım (ve selectedGuideIds boş)
+    // Tümünü seç OFF ise hepsini ekle
+    if (isAllSelected) {
+      setIsAllSelected(false);
+      setSelectedGuideIds([]);
+    } else {
+      setIsAllSelected(true);
+      // Tüm guideId'leri ekle
+      const allIds = allGuides.map((g) => g.id);
+      setSelectedGuideIds(allIds);
+    }
+  };
 
   return (
     <View style={styles.safeArea}>
@@ -204,6 +310,49 @@ export default function FastSearch() {
           </TouchableOpacity>
         </View>
 
+        {/* (YENİ) Sorgulanacak Kılavuzlar (açılır/kapanır) */}
+        <View style={styles.section}>
+          <TouchableOpacity onPress={() => setShowGuideSelection(!showGuideSelection)}>
+            <Text style={styles.sectionSubTitle}>
+              {showGuideSelection ? '▼ Sorgulanacak Kılavuzlar' : '► Sorgulanacak Kılavuzlar'}
+            </Text>
+          </TouchableOpacity>
+
+          {showGuideSelection && (
+            <View style={styles.guideSelectionContainer}>
+              {/* Tümünü seç */}
+              <TouchableOpacity
+                style={styles.checkBoxRow}
+                onPress={toggleSelectAll}
+              >
+                <View style={[styles.checkBoxBox, isAllSelected && styles.checkBoxBoxChecked]}>
+                  {isAllSelected && <Text style={styles.checkBoxTick}>✓</Text>}
+                </View>
+                <Text style={styles.checkBoxLabel}>Tümünü Seç / Kaldır</Text>
+              </TouchableOpacity>
+
+              {allGuides.map((guide) => {
+                const checked = isAllSelected || selectedGuideIds.includes(guide.id);
+                return (
+                  <TouchableOpacity
+                    key={guide.id}
+                    style={styles.checkBoxRow}
+                    onPress={() => toggleGuide(guide.id)}
+                  >
+                    <View style={[styles.checkBoxBox, checked && styles.checkBoxBoxChecked]}>
+                      {checked && <Text style={styles.checkBoxTick}>✓</Text>}
+                    </View>
+                    {/* Kılavuz adı + base bilgisi parantez içinde */}
+                    <Text style={styles.checkBoxLabel}>
+                      {guide.title} ({guide.base})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
         {/* Sorgu Butonu */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.queryButton} onPress={sorgula}>
@@ -219,13 +368,19 @@ export default function FastSearch() {
               <View key={ad} style={styles.resultGroup}>
                 <Text style={styles.resultGroupTitle}>{ad}</Text>
                 {items.map((item, idx) => (
-                  <View key={idx} style={styles.resultItem}>
+                  <View
+                    key={idx}
+                    style={[
+                      styles.resultItem,
+                      { backgroundColor: getStatusBgColor(item.status) },
+                    ]}
+                  >
                     <Text>Girilen Değer: {item.sonucGirilen}</Text>
                     <Text>
                       Referans Aralık: {item.minValue} - {item.maxValue}
                     </Text>
                     <Text>Durum: {item.status}</Text>
-                    <Text>Kılavuz: {item.kilavuzAdi}</Text>
+                    <Text>Kılavuz: {item.kilavuzAdi} ({item.kilavuzBase})</Text>
                     {idx !== items.length - 1 && (
                       <View style={styles.resultDivider} />
                     )}
@@ -271,6 +426,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 2,
     elevation: 2
+  },
+  sectionSubTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2F5D8E',
+    marginBottom: 4
   },
   section: {
     marginBottom: 20,
@@ -383,7 +544,7 @@ const styles = StyleSheet.create({
   resultGroup: {
     marginBottom: 20,
     padding: 12,
-    backgroundColor: '#f1f8e9',
+    backgroundColor: '#fff',
     borderRadius: 10,
     // Gölge
     shadowColor: '#000',
@@ -399,11 +560,47 @@ const styles = StyleSheet.create({
     color: '#388e3c'
   },
   resultItem: {
-    marginBottom: 10
+    marginBottom: 10,
+    padding: 8,
+    borderRadius: 6,
+    // Arka plan rengi durum bazında "getStatusBgColor" ile set edilecek
   },
   resultDivider: {
     height: 1,
     backgroundColor: '#ccc',
     marginVertical: 8
+  },
+
+  // CheckBox stili
+  guideSelectionContainer: {
+    marginTop: 10
+  },
+  checkBoxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4
+  },
+  checkBoxBox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  checkBoxBoxChecked: {
+    borderColor: '#2F5D8E',
+    backgroundColor: '#2F5D8E'
+  },
+  checkBoxTick: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  checkBoxLabel: {
+    fontSize: 16,
+    color: '#333'
   }
 });
