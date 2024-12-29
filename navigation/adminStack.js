@@ -5,7 +5,7 @@ import GuidesScreen from '../pages/GuidesScreen';
 import EditGuideScreen from '../pages/EditGuideScreen';
 import EditRefScreen from '../pages/EditRefScreen';
 import EditValuesScreen from '../pages/EditValuesScreen';
-import UsersScreen from '../pages/UsersScreen';
+import PatientsScreen from '../pages/PatientsScreen';
 import AddTestScreen from '../pages/AddTestScreen';
 import ShowUserTestsScreen from '../pages/ShowUserTestsScreen';
 import FastSearch from '../pages/FastSearchScreen';
@@ -20,9 +20,9 @@ export default function AdminStack() {
       initialRouteName="AdminDashboard"
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#C8C6C6',
+          backgroundColor: '#F3F8FE',
         },
-        headerTintColor: '#fff',
+        headerTintColor: '#000',
         headerTitleStyle: {
           fontWeight: 'bold',
         },
@@ -54,9 +54,9 @@ export default function AdminStack() {
         options={{ title: 'Değerleri Düzenle' }}
       />
       <Stack.Screen
-        name="Users"
-        component={UsersScreen}
-        options={{ title: 'Kullanıcılar' }}
+        name="Patients"
+        component={PatientsScreen}
+        options={{ title: 'Hasta Takibi' }}
       />
       <Stack.Screen
         name="AddTest"

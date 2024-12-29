@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  FlatList
+  FlatList,
 } from 'react-native';
 import { addValuesToRef, getAllRefsWithValues } from '../services/aDegerlerService';
 import { getGuideById } from '../services/aGuidesService';
 import { removeValueFromRef } from '../services/aValuesService';
+import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 
 const EditGuideScreen = ({ route, navigation }) => {
   const { guideId, refName } = route.params;
@@ -19,10 +20,30 @@ const EditGuideScreen = ({ route, navigation }) => {
   const [maxAge, setMaxAge] = useState('');
   const [minValue, setMinValue] = useState('');
   const [maxValue, setMaxValue] = useState('');
-  const [guide, setGuide] = useState('');
-  const [allRefValues, setAllRefValues] = useState({});
+  const [guide, setGuide] = useState({});
+  const [allRefValues, setAllRefValues] = useState([]);
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false);
 
+  // Fetch data when the screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchGuide = async () => {
+        try {
+          const allRefValues = await getAllRefsWithValues(guideId, refName);
+          setAllRefValues(allRefValues);
+
+          const guideData = await getGuideById(guideId);
+          setGuide(guideData);
+        } catch (error) {
+          Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
+        }
+      };
+      fetchGuide();
+    }, [guideId, refName]) // Dependencies
+  );
+
+  // Remove the initial useEffect as useFocusEffect handles data fetching
+  /*
   useEffect(() => {
     const fetchGuide = async () => {
       try {
@@ -37,20 +58,16 @@ const EditGuideScreen = ({ route, navigation }) => {
     };
     fetchGuide();
   }, [refName]);
+  */
 
-  const fetchGuide = async () => {
-    try {
-      const allRefValues = await getAllRefsWithValues(guideId, refName);
-      setAllRefValues(allRefValues);
-
-      const guideData = await getGuideById(guideId);
-      setGuide(guideData);
-    } catch (error) {
-      Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
-    }
-  };
+  // No changes needed in fetchGuide function
 
   const handleAddRefFields = async () => {
+    if (!minAge.trim() || !maxAge.trim() || !minValue.trim() || !maxValue.trim()) {
+      Alert.alert('Uyarı', 'Tüm alanları doldurun.');
+      return;
+    }
+
     try {
       let finalMinValue = minValue;
       let finalMaxValue = maxValue;
@@ -65,23 +82,35 @@ const EditGuideScreen = ({ route, navigation }) => {
       await addValuesToRef(
         guideId,
         refName,
-        minAge,
-        maxAge,
-        finalMinValue,
-        finalMaxValue
+        parseFloat(minAge),
+        parseFloat(maxAge),
+        parseFloat(finalMinValue),
+        parseFloat(finalMaxValue)
       );
 
-      fetchGuide(); 
+      // Refresh data
+      const updatedRefValues = await getAllRefsWithValues(guideId, refName);
+      setAllRefValues(updatedRefValues);
+
+      // Reset form
       setMinAge('');
       setMaxAge('');
       setMinValue('');
       setMaxValue('');
+      setIsGuideFormVisible(false);
     } catch (error) {
       Alert.alert('Hata', 'Değer eklenemedi.');
     }
   };
 
-  const handleDeleteValue = async (guideId, refName, minAge, maxAge, minValue, maxValue) => {
+  const handleDeleteValue = async (
+    guideId,
+    refName,
+    minAge,
+    maxAge,
+    minValue,
+    maxValue
+  ) => {
     Alert.alert(
       'Silme Onayı',
       'Bu kılavuzu silmek istediğinizden emin misiniz?',
@@ -97,7 +126,9 @@ const EditGuideScreen = ({ route, navigation }) => {
             try {
               const valueToRemove = { minAge, maxAge, minValue, maxValue };
               await removeValueFromRef(guideId, refName, valueToRemove);
-              fetchGuide();
+              // Refresh data
+              const updatedRefValues = await getAllRefsWithValues(guideId, refName);
+              setAllRefValues(updatedRefValues);
               Alert.alert('Başarılı', 'Kılavuz silindi!');
             } catch (error) {
               Alert.alert('Hata', error.message || 'Kılavuz silinemedi.');
@@ -219,7 +250,7 @@ const EditGuideScreen = ({ route, navigation }) => {
                     minAge: item.minAge,
                     maxAge: item.maxAge,
                     minValue: item.minValue,
-                    maxValue: item.maxValue
+                    maxValue: item.maxValue,
                   })
                 }
               >
@@ -258,19 +289,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F8FE', // Pastel mavi arkaplan
-    padding: 20
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 20,
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#2F5D8E',
-    flex: 1
+    flex: 1,
   },
   circleButton: {
     width: 44,
@@ -285,18 +316,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3.5,
-    elevation: 3
+    elevation: 3,
   },
   circleButtonText: {
     color: '#fff',
     fontSize: 24,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   guideButton: {
     marginLeft: 10,
     flex: 0,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   formWrapper: {
     backgroundColor: '#fff',
@@ -309,18 +340,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3.5,
-    elevation: 3
+    elevation: 3,
   },
   label: {
     fontSize: 15,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 10
+    marginBottom: 10,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 12,
+    justifyContent: 'space-between',
   },
   input: {
     borderWidth: 1,
@@ -329,11 +361,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     borderRadius: 8,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
+
+    // Hafif gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1.8,
+    elevation: 1,
   },
   halfInput: {
     width: '47%',
-    marginRight: '6%'
+    marginRight: '6%',
   },
   saveButton: {
     backgroundColor: '#5A8FCB',
@@ -346,18 +385,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3.5,
-    elevation: 3
+    elevation: 3,
   },
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   subtitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 10
+    marginBottom: 10,
   },
   tableContainer: {
     backgroundColor: '#fff',
@@ -372,23 +411,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3.5,
-    elevation: 2
+    elevation: 2,
   },
   tableTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#2F5D8E',
-    marginBottom: 4
+    marginBottom: 4,
   },
   tableValue: {
     fontSize: 14,
     color: '#555',
     marginBottom: 12,
-    lineHeight: 20
+    lineHeight: 20,
   },
   actionButtons: {
     flexDirection: 'row',
-    marginTop: 10
+    marginTop: 10,
   },
   editButton: {
     flex: 7,
@@ -404,12 +443,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1.5 },
     shadowOpacity: 0.15,
     shadowRadius: 2,
-    elevation: 2
+    elevation: 2,
   },
   editButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   deleteButton: {
     flex: 3,
@@ -424,11 +463,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1.5 },
     shadowOpacity: 0.15,
     shadowRadius: 2,
-    elevation: 2
+    elevation: 2,
   },
   deleteButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700'
-  }
+    fontWeight: '700',
+  },
 });

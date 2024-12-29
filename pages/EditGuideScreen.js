@@ -1,3 +1,5 @@
+// EditGuideScreen.js
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,11 +10,10 @@ import {
   StyleSheet,
   FlatList
 } from 'react-native';
-import { REFS } from '../shared/consts';
+import { REFS, BASES } from '../shared/consts';
 import { Picker } from '@react-native-picker/picker';
 import { updateGuide, getGuideById } from '../services/aGuidesService';
-import { addRef, getAllRefs } from '../services/aDegerlerService';
-import { BASES } from '../shared/consts';
+import { addRef, getAllRefs, deleteRef } from '../services/aDegerlerService'; // Ensure deleteRef is imported
 
 const EditGuideScreen = ({ route, navigation }) => {
   const { guideId } = route.params;
@@ -22,7 +23,7 @@ const EditGuideScreen = ({ route, navigation }) => {
   const [base, setBase] = useState('');
   const [ref, setRef] = useState('');
 
-  const [allRefs, setAllRefs] = useState({});
+  const [allRefs, setAllRefs] = useState([]);
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false);
   const [isValueFormVisible, setIsValueFormVisible] = useState(false);
 
@@ -30,12 +31,12 @@ const EditGuideScreen = ({ route, navigation }) => {
     const fetchGuide = async () => {
       try {
         const guide = await getGuideById(guideId);
-        const allRefsObj = await getAllRefs(guideId);
+        const allRefsArray = await getAllRefs(guideId);
         setTitle(guide.title);
         setDescription(guide.description);
         setBase(guide.base);
         setRef(REFS[0]);
-        setAllRefs(allRefsObj);
+        setAllRefs(allRefsArray);
       } catch (error) {
         Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
       }
@@ -46,12 +47,12 @@ const EditGuideScreen = ({ route, navigation }) => {
   const fetchGuide = async () => {
     try {
       const guide = await getGuideById(guideId);
-      const allRefsObj = await getAllRefs(guideId);
+      const allRefsArray = await getAllRefs(guideId);
       setTitle(guide.title);
       setDescription(guide.description);
       setBase(guide.base);
       setRef(REFS[0]);
-      setAllRefs(allRefsObj);
+      setAllRefs(allRefsArray);
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kılavuz bilgileri alınamadı.');
     }
@@ -87,16 +88,35 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleDeleteGuide = async (id) => {
-    try {
-      // Burada deleteSubTable vb. bir fonksiyonunuz olduğunu varsayıyorum.
-      // Kendi servis fonksiyonunuzla değiştiriniz.
-      await deleteSubTable(guideId, id);
-      fetchGuide();
-      Alert.alert('Başarılı', 'Değer silindi!');
-    } catch (error) {
-      Alert.alert('Hata', error.message || 'Değer silinemedi.');
-    }
+  /**
+   * Handles the deletion of a reference.
+   * @param {string} refName - The name of the reference to delete.
+   */
+  const handleDeleteRef = async (refName) => {
+    Alert.alert(
+      'Silme Onayı',
+      `Referans "${refName}" silmek istediğinizden emin misiniz?`,
+      [
+        {
+          text: 'Hayır',
+          onPress: () => console.log('Silme işlemi iptal edildi'),
+          style: 'cancel',
+        },
+        {
+          text: 'Evet',
+          onPress: async () => {
+            try {
+              await deleteRef(guideId, refName);
+              fetchGuide();
+              Alert.alert('Başarılı', 'Referans silindi!');
+            } catch (error) {
+              Alert.alert('Hata', error.message || 'Referans silinemedi.');
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   return (
@@ -202,7 +222,7 @@ const EditGuideScreen = ({ route, navigation }) => {
       <FlatList
         data={allRefs}
         keyExtractor={(item, index) =>
-          item.id ? item.id.toString() : index.toString()
+          item.key ? item.key.toString() : index.toString()
         }
         renderItem={({ item }) => (
           <View style={styles.tableContainer}>
@@ -222,7 +242,7 @@ const EditGuideScreen = ({ route, navigation }) => {
 
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => handleDeleteGuide(item.id)}
+                onPress={() => handleDeleteRef(item.key)} // Pass refName instead of id
               >
                 <Text style={styles.deleteButtonText}>Sil</Text>
               </TouchableOpacity>

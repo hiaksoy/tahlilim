@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getAllUsers } from '../services/aUsersService';
+import { getUsersWithRoleUser } from '../services/aUsersService';
 
-const UsersScreen = () => {
+const PatientsScreen = () => {
   const navigation = useNavigation();
   const [users, setUsers] = useState([]);
   const [expandedUser, setExpandedUser] = useState(null);
 
   const fetchUsers = async () => {
     try {
-      const data = await getAllUsers();
+      const data = await getUsersWithRoleUser();
       setUsers(data);
     } catch (error) {
       Alert.alert('Hata', error.message || 'Kullanıcılar alınamadı.');
@@ -37,9 +37,13 @@ const UsersScreen = () => {
     navigation.navigate('AddTest', { userId });
   };
 
+
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Kullanıcılar</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Hastalar</Text>
+      </View>
 
       <FlatList
         data={users}
@@ -65,12 +69,7 @@ const UsersScreen = () => {
                 </Text>
 
                 <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => handleEditUser(item.id)}
-                  >
-                    <Text style={styles.editButtonText}>Düzenle</Text>
-                  </TouchableOpacity>
+      
 
                   <TouchableOpacity
                     style={styles.viewButton}
@@ -80,7 +79,7 @@ const UsersScreen = () => {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.viewButton}
+                    style={styles.editButton}
                     onPress={() => handleAddTest(item.id)}
                   >
                     <Text style={styles.viewButtonText}>Tahlil Ekle</Text>
@@ -95,7 +94,7 @@ const UsersScreen = () => {
   );
 };
 
-export default UsersScreen;
+export default PatientsScreen;
 
 // ---------------------------------------------------------------------
 // STYLES
@@ -103,15 +102,32 @@ export default UsersScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F8FE',  // Pastel mavi arka plan
+    backgroundColor: '#F3F8FE', // Pastel mavi arka plan
     padding: 20
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2F5D8E',
-    marginVertical: 10,
-    textAlign: 'center'
+    color: '#2F5D8E'
+  },
+  addPatientButton: {
+    backgroundColor: '#28a745', // Yeşil renk
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  addPatientButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600'
   },
   userItem: {
     backgroundColor: '#fff',
@@ -138,6 +154,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#eee',
     padding: 10,
+
     // Gölge
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1.5 },
@@ -180,6 +197,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 6,
     alignItems: 'center',
+    marginHorizontal: 5,
 
     // Gölge
     shadowColor: '#000',

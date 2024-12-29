@@ -124,10 +124,20 @@ export default function FastSearch() {
   };
 
   const hesaplaAyOlarakYas = (bugun, dt) => {
-    const yilFarki = bugun.getFullYear() - dt.getFullYear();
-    const ayFarki = bugun.getMonth() - dt.getMonth();
-    return yilFarki * 12 + ayFarki;
+    // Türkiye saat dilimini UTC+3 olarak ayarlıyoruz
+    const bugunTR = new Date(bugun.getTime() + (3 * 60 * 60 * 1000));
+    const dtTR = new Date(dt.getTime() + (3 * 60 * 60 * 1000));
+  
+    const yilFarki = bugunTR.getFullYear() - dtTR.getFullYear();
+    const ayFarki = bugunTR.getMonth() - dtTR.getMonth();
+  
+    // Eğer gün, ay içinde dolmamışsa 1 ay çıkar
+    const gunFarki = bugunTR.getDate() - dtTR.getDate();
+    const toplamAy = yilFarki * 12 + ayFarki - (gunFarki < 0 ? 1 : 0);
+  
+    return toplamAy;
   };
+  
 
   return (
     <View style={styles.safeArea}>

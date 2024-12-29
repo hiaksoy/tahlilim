@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, StatusBar } from 'react-native';
 import { auth } from '../configs/firebase_config';
 import { signOut } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
@@ -24,8 +24,8 @@ const AdminDashboardScreen = () => {
     navigation.navigate('Guides');
   };
 
-  const goToUsers = () => {
-    navigation.navigate('Users');
+  const goToPatients = () => {
+    navigation.navigate('Patients');
   };
 
   const goToFastSearch = () => {
@@ -34,6 +34,12 @@ const AdminDashboardScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Status Bar Ayarları */}
+      <StatusBar
+        backgroundColor="#F3F8FE" // Arka plan rengi pastel mavi
+        barStyle="dark-content" // İçerik rengi koyu (açık arka plan için)
+      />
+
       <Text style={styles.title}>Hoşgeldiniz</Text>
       {user && (
         <View style={styles.userInfoContainer}>
@@ -55,9 +61,9 @@ const AdminDashboardScreen = () => {
           <Text style={styles.gridItemText}>Kılavuzlar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.gridItem} onPress={goToUsers}>
+        <TouchableOpacity style={styles.gridItem} onPress={goToPatients}>
           <FontAwesome5 name="users" size={40} color="#fff" />
-          <Text style={styles.gridItemText}>Kullanıcılar</Text>
+          <Text style={styles.gridItemText}>Hasta Takibi</Text>
         </TouchableOpacity>
       </View>
 
@@ -81,7 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F8FE',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   title: {
     fontSize: 24,

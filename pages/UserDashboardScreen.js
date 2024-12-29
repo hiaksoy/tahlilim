@@ -9,6 +9,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 export default function UserDashboard() {
   const { setUser } = useContext(AuthContext); // AuthContext'ten setUser al
   const navigation = useNavigation();
+  const user = auth.currentUser; // Firebase'den mevcut kullanıcı bilgisi
 
   const handleLogout = async () => {
     try {
@@ -21,7 +22,15 @@ export default function UserDashboard() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to the App!</Text>
+      <Text style={styles.title}>Hoşgeldiniz</Text>
+      {user && (
+        <View style={styles.userInfoContainer}>
+          <Text style={styles.userInfoText}>
+            Giriş Yapmış Kullanıcı:{'\n'}
+            <Text style={styles.userEmail}>{user.email}</Text>
+          </Text>
+        </View>
+      )}
 
       {/* Grid Butonları */}
       <View style={styles.gridContainer}>
@@ -76,8 +85,31 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
     color: '#333',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  userInfoContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 3,
+  },
+  userInfoText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+  },
+  userEmail: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2F5D8E',
   },
   gridContainer: {
     flexDirection: 'row',
