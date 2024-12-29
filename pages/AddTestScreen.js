@@ -74,7 +74,6 @@ const AddTestScreen = ({ route }) => {
         uzmanOnayZamani,
         degerler
       );
-      console.log('Tahlil başarıyla eklendi');
       Alert.alert('Başarılı', 'Tahlil eklendi!');
       navigation.goBack();
     } catch (error) {

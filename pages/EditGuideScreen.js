@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  FlatList,
+} from 'react-native';
 import { REFS, BASES } from '../shared/consts';
 import { Picker } from '@react-native-picker/picker';
 import { updateGuide, getGuideById } from '../services/GuidesService';
@@ -17,6 +25,9 @@ const EditGuideScreen = ({ route, navigation }) => {
   const [isGuideFormVisible, setIsGuideFormVisible] = useState(false);
   const [isValueFormVisible, setIsValueFormVisible] = useState(false);
 
+  // ---------------------------------------------------------------------
+  // FETCH DATA
+  // ---------------------------------------------------------------------
   useEffect(() => {
     const fetchGuide = async () => {
       try {
@@ -48,6 +59,9 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
+  // ---------------------------------------------------------------------
+  // GUIDE UPDATE
+  // ---------------------------------------------------------------------
   const handleUpdateGuide = async () => {
     if (!title || !description) {
       Alert.alert('Uyarı', 'Tüm alanları doldurun.');
@@ -62,6 +76,9 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
+  // ---------------------------------------------------------------------
+  // REFERENCE ADD
+  // ---------------------------------------------------------------------
   const handleAddRef = async () => {
     if (!ref) {
       Alert.alert('Uyarı', 'Tüm alanları doldurun.');
@@ -78,7 +95,9 @@ const EditGuideScreen = ({ route, navigation }) => {
     }
   };
 
-
+  // ---------------------------------------------------------------------
+  // REFERENCE DELETE
+  // ---------------------------------------------------------------------
   const handleDeleteRef = async (refName) => {
     Alert.alert(
       'Silme Onayı',
@@ -106,30 +125,30 @@ const EditGuideScreen = ({ route, navigation }) => {
     );
   };
 
+  // ---------------------------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------------------------
   return (
     <View style={styles.container}>
-
-      {/* ----- Kılavuz Düzenle Kısmı ----- */}
-      <View
-        style={[
-          styles.header,
-          isGuideFormVisible
-            ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
-            : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15, marginBottom: 15 }
-        ]}
-      >
-        <TouchableOpacity onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}>
-          <Text style={styles.title}>Kılavuzu Düzenle</Text>
+      {/* Kılavuzu Düzenle Başlık + Buton */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}
+        >
+          <Text style={styles.headerTitle}>Kılavuzu Düzenle</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.circleButton, styles.guideButton]}
+          style={[styles.circleButton, { backgroundColor: '#28a745' }]} // (3) + butonu yeşil
           onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}
         >
           <Text style={styles.circleButtonText}>+</Text>
         </TouchableOpacity>
       </View>
 
+      {/* (1) Kılavuzu düzenle (açılır/kapanır): 
+          Sadece açıldığında beyaz kart gözüksün (arkaplan) */}
       {isGuideFormVisible && (
         <View style={styles.formWrapper}>
           <TextInput
@@ -163,29 +182,27 @@ const EditGuideScreen = ({ route, navigation }) => {
         </View>
       )}
 
-      {/* ----- Değer Ekle Kısmı ----- */}
-      <View
-        style={[
-          styles.header,
-          isValueFormVisible
-            ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
-            : { borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }
-        ]}
-      >
-        <TouchableOpacity onPress={() => setIsValueFormVisible(!isValueFormVisible)}>
-          <Text style={styles.title}>Değer Ekle</Text>
+      {/* Değer Ekle Başlık + Buton */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => setIsValueFormVisible(!isValueFormVisible)}
+        >
+          <Text style={styles.headerTitle}>Değer Ekle</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.circleButton, styles.valueButton]}
+          style={[styles.circleButton, { backgroundColor: '#28a745' }]} // (3) yeşil buton
           onPress={() => setIsValueFormVisible(!isValueFormVisible)}
         >
           <Text style={styles.circleButtonText}>+</Text>
         </TouchableOpacity>
       </View>
 
+      {/* (1) Değer ekle (açılır/kapanır):
+          Sadece açıldığında beyaz kart gözüksün */}
       {isValueFormVisible && (
-        <View style={[styles.formWrapper, { marginBottom: 0 }]}>
+        <View style={styles.formWrapper}>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={ref}
@@ -204,7 +221,7 @@ const EditGuideScreen = ({ route, navigation }) => {
         </View>
       )}
 
-      {/* ----- Kılavuz Listesi ----- */}
+      {/* Kılavuz Listesi */}
       <Text style={styles.subtitle}>Kılavuz : {title} / Referans Değerler</Text>
       <FlatList
         data={allRefs}
@@ -216,7 +233,7 @@ const EditGuideScreen = ({ route, navigation }) => {
             <Text style={styles.tableTitle}>{item.key}</Text>
             <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={styles.editButton}
+                style={[styles.actionBtn, styles.editButton]}
                 onPress={() =>
                   navigation.navigate('EditRef', {
                     guideId,
@@ -228,8 +245,8 @@ const EditGuideScreen = ({ route, navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteRef(item.key)} // Pass refName instead of id
+                style={[styles.actionBtn, styles.deleteButton]}
+                onPress={() => handleDeleteRef(item.key)}
               >
                 <Text style={styles.deleteButtonText}>Sil</Text>
               </TouchableOpacity>
@@ -249,39 +266,28 @@ export default EditGuideScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F8FE', // Pastel mavi arkaplan (diğer sayfalarla uyumlu)
+    backgroundColor: '#F3F8FE', // Pastel mavi arkaplan
     padding: 20
   },
-  header: {
+  // Üst başlık (kılavuz/değer ekle) satırı
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-
-    // iOS gölge
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3.5,
-
-    // Android gölge
-    elevation: 3,
     marginBottom: 15
   },
-  title: {
-    marginTop: 3,
+  headerButton: {
+    flex: 1
+  },
+  headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#2F5D8E',
-    flex: 1
+    color: '#2F5D8E'
   },
   circleButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#5A8FCB',
     justifyContent: 'center',
     alignItems: 'center',
 
@@ -297,22 +303,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold'
   },
-  guideButton: {
-    marginLeft: 10,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  valueButton: {
-    marginLeft: 10,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
   formWrapper: {
     backgroundColor: '#fff',
-    borderRadius: 15,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    marginBottom: 15,
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
 
     // Gölge
     shadowColor: '#000',
@@ -342,9 +337,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fefefe'
   },
   saveButton: {
-    backgroundColor: '#2F5D8E',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: '#5A8FCB',
+    borderRadius: 10,
+    paddingVertical: 12,
     alignItems: 'center',
     marginTop: 10,
 
@@ -364,7 +359,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
-    marginVertical: 10
+    marginBottom: 10
   },
   tableContainer: {
     backgroundColor: '#fff',
@@ -391,14 +386,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 10
   },
-  editButton: {
-    flex: 7,
-    backgroundColor: '#4B6587',
+  actionBtn: {
+    flex: 1,
     padding: 10,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 5,
 
     // Gölge
     shadowColor: '#000',
@@ -406,30 +399,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 2,
     elevation: 2
+  },
+  editButton: {
+    backgroundColor: '#28a745', // (3) Düzenle butonu yeşil
+    marginRight: 5
   },
   editButtonText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700'
   },
   deleteButton: {
-    flex: 3,
-    backgroundColor: '#CD4439',
-    padding: 10,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    // Gölge
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1.5 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2
+    backgroundColor: '#ff4d4f', // (3) Sil butonu kırmızı
+    marginLeft: 5
   },
   deleteButtonText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700'
   }
 });

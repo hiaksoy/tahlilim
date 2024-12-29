@@ -1,19 +1,24 @@
+// ... diğer importlar ...
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Alert
+} from 'react-native';
 import { useRoute } from '@react-navigation/native';
-
 import { db } from '../configs/firebase_config';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { getUserById } from '../services/UsersService';
 
 const parseDateString = (dateString) => {
   if (!dateString) return null;
-
   const [day, month, year] = dateString.split('.');
   if (!day || !month || !year) return null;
-
-  const formattedDate = `${year}-${month}-${day}`;
-  return new Date(formattedDate);
+  return new Date(`${year}-${month}-${day}`);
 };
 
 const hesaplaAyOlarakYas = (bugun, dt) => {
@@ -29,8 +34,9 @@ const parseCommaFloat = (val) => {
 
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return 'Tarih yok';
-  const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
-
+  const date = timestamp.seconds
+    ? new Date(timestamp.seconds * 1000)
+    : new Date(timestamp);
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
@@ -49,7 +55,6 @@ const ShowUserTestsScreen = () => {
   const [kilavuzlar, setKilavuzlar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
-
   const [expandedTahliller, setExpandedTahliller] = useState({});
 
   useEffect(() => {
@@ -58,33 +63,43 @@ const ShowUserTestsScreen = () => {
         setLoading(false);
         return;
       }
-
       try {
+        // Kullanıcı ismi:
         const user = await getUserById(userId);
         setUserName(`${user.name} ${user.surname}`);
 
-        const kilavuzSnapshot = await getDocs(collection(db, 'Kılavuzlar'));
+        // Kılavuzlar:
+        const kilavuzSnap = await getDocs(collection(db, 'Kılavuzlar'));
         let tempKilavuzlar = [];
-        kilavuzSnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          tempKilavuzlar.push({
-            id: docSnap.id,
-            ...data
-          });
+        kilavuzSnap.forEach((docSnap) => {
+          tempKilavuzlar.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        const tahlilSnapshot = await getDocs(collection(db, 'Tahliller'));
+        // Tahliller:
+        const tahlilSnap = await getDocs(collection(db, 'Tahliller'));
         let tempTahliller = [];
-        tahlilSnapshot.forEach((docSnap) => {
+        tahlilSnap.forEach((docSnap) => {
           const data = docSnap.data();
           if (data.userId === userId) {
             tempTahliller.push({ id: docSnap.id, ...data });
           }
         });
 
+        // createdAt’e göre azalan sırada (en yeni -> en eski)
+        tempTahliller.sort((a, b) => {
+          const dateA = a.createdAt?.seconds
+            ? a.createdAt.seconds * 1000
+            : new Date(a.createdAt || 0).getTime();
+          const dateB = b.createdAt?.seconds
+            ? b.createdAt.seconds * 1000
+            : new Date(b.createdAt || 0).getTime();
+          return dateB - dateA; // Azalan sıralama
+        });
+
         setKilavuzlar(tempKilavuzlar);
         setTahliller(tempTahliller);
       } catch (err) {
+        console.log('fetchData hatası:', err);
       } finally {
         setLoading(false);
       }
@@ -93,25 +108,21 @@ const ShowUserTestsScreen = () => {
     fetchData();
   }, [userId]);
 
+  // Durum hesaplama (tek tahlil için)
   const getDurum = (tetkikAd, sonucStr) => {
     if (!dogumTarihi || isNaN(dogumTarihi.getTime())) return null;
 
     const bugun = new Date();
     const ayFarki = hesaplaAyOlarakYas(bugun, dogumTarihi);
-
     const sonucFloat = parseCommaFloat(sonucStr);
     if (isNaN(sonucFloat)) return null;
 
-    for (let i = 0; i < kilavuzlar.length; i++) {
-      const k = kilavuzlar[i];
+    for (let k of kilavuzlar) {
       if (!k.Degerler) continue;
-
       const arr = k.Degerler[tetkikAd];
       if (!arr) continue;
 
-      for (let j = 0; j < arr.length; j++) {
-        const rangeObj = arr[j];
-
+      for (let rangeObj of arr) {
         const minA = parseFloat(rangeObj.minAge);
         const maxA = parseFloat(rangeObj.maxAge);
         const minV = parseCommaFloat(rangeObj.minValue);
@@ -131,10 +142,36 @@ const ShowUserTestsScreen = () => {
         }
       }
     }
-
     return null;
   };
 
+  // (YENİ) Tahliller listesinde, currentTahlil’in index’ini buluyoruz:
+  // Sonra index+1 .. tahliller.length-1 arasındakiler (daha eski tahliller)
+  // Bu tetkik adını bulursak, previousResults’a ekliyoruz; en fazla 3
+  const getPreviousResults = (tetkikAd, currentTahlilId) => {
+    let previousResults = [];
+    const currentIndex = tahliller.findIndex((t) => t.id === currentTahlilId);
+    if (currentIndex === -1) return [];
+
+    // Daha eski tahliller = index i > currentIndex
+    for (let i = currentIndex + 1; i < tahliller.length; i++) {
+      const olderTahlil = tahliller[i];
+      if (olderTahlil.degerler && olderTahlil.degerler.length > 0) {
+        // Bu tahlilde "tetkikAd" var mı?
+        for (let d of olderTahlil.degerler) {
+          if (d.ad === tetkikAd) {
+            previousResults.push(d.sonuc);
+            break; // Bu tahlilden sadece 1 tane "d.ad" alalım
+          }
+        }
+      }
+      if (previousResults.length >= 3) break;
+    }
+
+    return previousResults;
+  };
+
+  // Tahlil'i genişlet/gizle
   const toggleTahlilExpansion = (id) => {
     setExpandedTahliller((prev) => ({
       ...prev,
@@ -142,6 +179,7 @@ const ShowUserTestsScreen = () => {
     }));
   };
 
+  // Tahlil Sil
   const handleDeleteTahlil = async (id) => {
     try {
       await deleteDoc(doc(db, 'Tahliller', id));
@@ -152,6 +190,7 @@ const ShowUserTestsScreen = () => {
     }
   };
 
+  // Loading
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -161,11 +200,10 @@ const ShowUserTestsScreen = () => {
     );
   }
 
+  // Render
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {userName} - Hasta Tahlilleri
-      </Text>
+      <Text style={styles.title}>{userName} - Hasta Tahlilleri</Text>
 
       {tahliller.length === 0 ? (
         <Text style={styles.infoText}>Bu kullanıcıya ait tahlil bulunamadı.</Text>
@@ -173,112 +211,138 @@ const ShowUserTestsScreen = () => {
         <FlatList
           data={tahliller}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.tahlilCard}>
-              {/* Silme Butonu - Üst Kısma Taşındı ve Onay Eklendi */}
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => {
-                  Alert.alert(
-                    'Silme Onayı',
-                    'Bu tahlili silmek istediğinize emin misiniz?',
-                    [
-                      { text: 'İptal', style: 'cancel' },
-                      {
-                        text: 'Sil',
-                        style: 'destructive',
-                        onPress: () => handleDeleteTahlil(item.id)
-                      }
-                    ],
-                    { cancelable: true }
-                  );
-                }}
-              >
-                <Text style={styles.deleteButtonText}>Sil</Text>
-              </TouchableOpacity>
+          renderItem={({ item }) => {
+            return (
+              <View style={styles.tahlilCard}>
+                {/* Sil Butonu */}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => {
+                    Alert.alert(
+                      'Silme Onayı',
+                      'Bu tahlili silmek istediğinize emin misiniz?',
+                      [
+                        { text: 'İptal', style: 'cancel' },
+                        {
+                          text: 'Sil',
+                          style: 'destructive',
+                          onPress: () => handleDeleteTahlil(item.id)
+                        }
+                      ],
+                      { cancelable: true }
+                    );
+                  }}
+                >
+                  <Text style={styles.deleteButtonText}>Sil</Text>
+                </TouchableOpacity>
 
-              {/* Rapor No ve Diğer Bilgiler */}
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Rapor No:</Text> {item.raporNo || 'N/A'}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Tanı:</Text> {item.tani || 'N/A'}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Numune Türü:</Text> {item.numuneTuru || 'N/A'}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Rapor Grubu:</Text> {item.raporGrubu || 'N/A'}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Tetkik İstem Zamanı:</Text> {formatTimestamp(item.tetkikIstemZamani)}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Numune Alma Zamanı:</Text> {formatTimestamp(item.numuneAlmaZamani)}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Numune Kabul Zamanı:</Text> {formatTimestamp(item.numuneKabulZamani)}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Uzman Onay Zamanı:</Text> {formatTimestamp(item.uzmanOnayZamani)}
-              </Text>
+                {/* Rapor No vb. */}
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Rapor No:</Text> {item.raporNo || 'N/A'}
+                </Text>
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Tanı:</Text> {item.tani || 'N/A'}
+                </Text>
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Numune Türü:</Text> {item.numuneTuru || 'N/A'}
+                </Text>
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Rapor Grubu:</Text> {item.raporGrubu || 'N/A'}
+                </Text>
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Tetkik İstem Zamanı:</Text>{' '}
+                  {formatTimestamp(item.tetkikIstemZamani)}
+                </Text>
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Numune Alma Zamanı:</Text>{' '}
+                  {formatTimestamp(item.numuneAlmaZamani)}
+                </Text>
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Numune Kabul Zamanı:</Text>{' '}
+                  {formatTimestamp(item.numuneKabulZamani)}
+                </Text>
+                <Text style={styles.label}>
+                  <Text style={styles.bold}>Uzman Onay Zamanı:</Text>{' '}
+                  {formatTimestamp(item.uzmanOnayZamani)}
+                </Text>
 
-              {item.degerler?.length > 0 && (
-                <>
-                  <TouchableOpacity
-                    style={styles.showHideButton}
-                    onPress={() => toggleTahlilExpansion(item.id)}
-                  >
-                    <Text style={styles.showHideButtonText}>
-                      {expandedTahliller[item.id] ? '▼ Değerleri Gizle' : '► Değerleri Göster'}
-                    </Text>
-                  </TouchableOpacity>
+                {item.degerler?.length > 0 && (
+                  <>
+                    <TouchableOpacity
+                      style={styles.showHideButton}
+                      onPress={() => toggleTahlilExpansion(item.id)}
+                    >
+                      <Text style={styles.showHideButtonText}>
+                        {expandedTahliller[item.id]
+                          ? '▼ Değerleri Gizle'
+                          : '► Değerleri Göster'}
+                      </Text>
+                    </TouchableOpacity>
 
-                  {expandedTahliller[item.id] && (
-                    <View style={styles.degerlerContainer}>
-                      {item.degerler.map((d, idx) => {
-                        const calcData = getDurum(d.ad, d.sonuc);
+                    {expandedTahliller[item.id] && (
+                      <View style={styles.degerlerContainer}>
+                        {item.degerler.map((d, idx) => {
+                          const calcData = getDurum(d.ad, d.sonuc);
+                          let bgStyle = {};
+                          if (calcData?.status === 'Normal') bgStyle = styles.bgNormal;
+                          else if (calcData?.status === 'Düşük') bgStyle = styles.bgLow;
+                          else if (calcData?.status === 'Yüksek') bgStyle = styles.bgHigh;
 
-                        let bgStyle = {};
-                        if (calcData?.status === 'Normal') bgStyle = styles.bgNormal;
-                        else if (calcData?.status === 'Düşük') bgStyle = styles.bgLow;
-                        else if (calcData?.status === 'Yüksek') bgStyle = styles.bgHigh;
+                          // önceki sonuçlar
+                          const previousResults = getPreviousResults(d.ad, item.id);
 
-                        return (
-                          <View key={idx} style={[styles.sonucItem, bgStyle]}>
-                            <Text style={styles.sonucText}>
-                              <Text style={styles.bold}>Tetkik Adı:</Text> {d.ad}
-                            </Text>
-                            <Text style={styles.sonucText}>
-                              <Text style={styles.bold}>Sonuç:</Text> {d.sonuc}
-                            </Text>
+                          return (
+                            <View key={idx} style={[styles.sonucItem, bgStyle]}>
+                              <Text style={styles.sonucText}>
+                                <Text style={styles.bold}>Tetkik Adı:</Text> {d.ad}
+                              </Text>
+                              <Text style={styles.sonucText}>
+                                <Text style={styles.bold}>Sonuç:</Text> {d.sonuc}
+                              </Text>
 
-                            <View style={styles.detayContainer}>
-                              {calcData ? (
-                                <>
-                                  <Text>
-                                    <Text style={styles.bold}>Durum:</Text> {calcData.status}
-                                  </Text>
-                                  <Text>
-                                    <Text style={styles.bold}>Referans Aralık:</Text> {calcData.minValue} - {calcData.maxValue}
-                                  </Text>
-                                  <Text>
-                                    <Text style={styles.bold}>Kılavuz Adı:</Text> {calcData.kilavuzAdi}
-                                  </Text>
-                                </>
-                              ) : (
-                                <Text style={styles.infoText}>Uygun rehber bilgisi bulunamadı.</Text>
+                              {/* Önceki Sonuçlar */}
+                              {previousResults.length > 0 && (
+                                <View style={styles.previousResultsContainer}>
+                                  <Text style={styles.bold}>Önceki Sonuçlar:</Text>
+                                  {previousResults.map((result, index) => (
+                                    <Text key={index} style={styles.previousResultText}>
+                                      • {result}
+                                    </Text>
+                                  ))}
+                                </View>
                               )}
+
+                              <View style={styles.detayContainer}>
+                                {calcData ? (
+                                  <>
+                                    <Text>
+                                      <Text style={styles.bold}>Durum:</Text> {calcData.status}
+                                    </Text>
+                                    <Text>
+                                      <Text style={styles.bold}>Referans Aralık:</Text>{' '}
+                                      {calcData.minValue} - {calcData.maxValue}
+                                    </Text>
+                                    <Text>
+                                      <Text style={styles.bold}>Kılavuz Adı:</Text>{' '}
+                                      {calcData.kilavuzAdi}
+                                    </Text>
+                                  </>
+                                ) : (
+                                  <Text style={styles.infoText}>
+                                    Uygun rehber bilgisi bulunamadı.
+                                  </Text>
+                                )}
+                              </View>
                             </View>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  )}
-                </>
-              )}
-            </View>
-          )}
+                          );
+                        })}
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
+            );
+          }}
         />
       )}
     </View>
@@ -388,11 +452,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6B6B',
     padding: 8,
     borderRadius: 8,
-    marginBottom: 10, // Boşluk ekleyerek "Rapor No" ile arasını açtık
+    marginBottom: 10,
     alignItems: 'center'
   },
   deleteButtonText: {
     color: '#fff',
     fontWeight: 'bold'
+  },
+  previousResultsContainer: {
+    marginTop: 8,
+    paddingLeft: 10
+  },
+  previousResultText: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 2
   }
 });
