@@ -130,34 +130,8 @@ Kılavuz Düzenleme Ekranı:
 Mevcut kılavuzları görüntüleyin ve düzenleyin.
 Yeni referans değerleri ekleyin veya mevcut olanları silin.
 Silme işlemi için onay mesajlarını takip edin.
-Proje Yapısı
-css
-Kodu kopyala
-tibbi-test-yonetim-uygulamasi/
-├── android/
-├── ios/
-├── src/
-│   ├── components/
-│   ├── screens/
-│   │   ├── PatientsScreen.js
-│   │   ├── AddTestScreen.js
-│   │   ├── EditGuideScreen.js
-│   │   └── ...
-│   ├── services/
-│   │   ├── UsersService.js
-│   │   ├── ReferencesService.js
-│   │   ├── GuidesService.js
-│   │   ├── ValuesService.js
-│   │   ├── TahlillerService.js
-│   │   └── ...
-│   ├── shared/
-│   │   ├── consts.js
-│   │   └── ...
-│   └── App.js
-├── .gitignore
-├── package.json
-├── README.md
-└── ...
+
+
 components/: Yeniden kullanılabilir UI bileşenleri.
 screens/: Uygulamanın farklı ekranları.
 services/: Veri alma ve manipülasyon işlemleri için backend servis entegrasyonları.
@@ -191,4 +165,4 @@ Lütfen kodunuzun proje kodlama standartlarına uygun olduğundan ve tüm lintin
 Lisans
 Bu proje MIT Lisansı altında lisanslanmıştır.
 
-❤️ ile geliştirildi Adınız tarafından
+Halil ibrahim Aksoy❤️ ile geliştirildi
