@@ -73,10 +73,10 @@ Android Studio / Xcode: Android veya iOS simülatörlerini/emülatörlerini çal
 Adımlar
 Depoyu Klonlayın
 
-bash
-Kodu kopyala
-git clone https://github.com/hiaksoy/tahlilim.git
-Proje Dizini İçine Geçin
+  ```bash
+  Kodu kopyala
+  git clone https://github.com/hiaksoy/tahlilim.git
+  Proje Dizini İçine Geçin
 
 bash
 Kodu kopyala
