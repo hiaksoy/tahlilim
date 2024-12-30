@@ -75,7 +75,7 @@ Depoyu Klonlayın
 
 bash
 Kodu kopyala
-git clone [https://github.com/kullaniciadiniz/tibbi-test-yonetim-uygulamasi](https://github.com/hiaksoy/tahlilim).git
+git clone https://github.com/hiaksoy/tahlilim.git
 Proje Dizini İçine Geçin
 
 bash
