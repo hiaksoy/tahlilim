@@ -1,3 +1,4 @@
+
 # Tıbbi Test Yönetim Uygulaması
 
 
@@ -67,102 +68,124 @@ Proje dizininizi yerel makinenize kurmak için aşağıdaki adımları takip edi
 - **Node.js**: Node.js'in yüklü olduğundan emin olun. [İndirmek için buraya tıklayın](https://nodejs.org/).
 - **React Native CLI**: React Native CLI'yi global olarak yükleyin:
   
-  ```bash
+  ```console
   npm install -g react-native-cli
-Android Studio / Xcode: Android veya iOS simülatörlerini/emülatörlerini çalıştırmak için gerekli araçlar.
-Adımlar
+  ```
+  
+  **Android Studio / Xcode:** Android veya iOS simülatörlerini/emülatörlerini çalıştırmak için gerekli araçlar.
+
+### Adımlar
+
 Depoyu Klonlayın
 
-  ```bash
-  Kodu kopyala
-  git clone https://github.com/hiaksoy/tahlilim.git
-  Proje Dizini İçine Geçin
+```console
+git clone https://github.com/hiaksoy/tahlilim.git
+```
 
-bash
-Kodu kopyala
+Proje Dizini İçine Geçin
+
+```console
 cd tahlilim
+```
+
 Bağımlılıkları Yükleyin
 
-bash
-Kodu kopyala
+```console
 npm install
+```
+
 veya yarn kullanıyorsanız:
 
-bash
-Kodu kopyala
+```console
 yarn install
+```
+
 Yerel Bağımlılıkları Linkleyin
 
 React Native 0.60 ve üzeri sürümler için otomatik linkleme işlemi yapılır. Daha düşük sürümler için manuel linkleme gerekebilir:
 
-bash
-Kodu kopyala
+```console
 react-native link
+```
+
 Uygulamayı Çalıştırın
 
 Android için:
 
-bash
-Kodu kopyala
+```console
 react-native run-android
+```
+
 iOS için:
 
-bash
-Kodu kopyala
+```console
 react-native run-ios
+```
+
 Emülatörün çalıştığından veya bir cihazın bağlı olduğundan emin olun.
 
-Kullanım
+## Kullanım
+
 Uygulama çalışmaya başladıktan sonra:
 
-Hastalar Ekranı:
+### Hastalar Ekranı:
 
-Tüm hastaların listesini görüntüleyin.
-Bir hastanın adına veya "+" butonuna tıklayarak ek detayları açın.
-"Hasta Ekle" butonunu kullanarak yeni bir hasta ekleyin.
-Test Ekleme Ekranı:
+- Tüm hastaların listesini görüntüleyin.
+- Bir hastanın adına veya "+" butonuna tıklayarak ek detayları açın.
+- "Hasta Ekle" butonunu kullanarak yeni bir hasta ekleyin.
 
-Gerekli bölümleri (Tahlil Bilgileri, Tarih ve Saat Bilgileri, Değerler, Kılavuz Düzenle) doldurun.
-"+" butonuna veya bölüm başlığına tıklayarak bölümleri açıp kapatın.
-Referans değerlerini dinamik olarak ekleyin ve formu göndererek yeni bir test ekleyin.
-Kılavuz Düzenleme Ekranı:
+### Test Ekleme Ekranı:
 
-Mevcut kılavuzları görüntüleyin ve düzenleyin.
-Yeni referans değerleri ekleyin veya mevcut olanları silin.
-Silme işlemi için onay mesajlarını takip edin.
+- Gerekli bölümleri (Tahlil Bilgileri, Tarih ve Saat Bilgileri, Değerler, Kılavuz Düzenle) doldurun.
+- "+" butonuna veya bölüm başlığına tıklayarak bölümleri açıp kapatın.
+- Referans değerlerini dinamik olarak ekleyin ve formu göndererek yeni bir test ekleyin.
+
+### Kılavuz Düzenleme Ekranı:
+
+- Mevcut kılavuzları görüntüleyin ve düzenleyin.
+- Yeni referans değerleri ekleyin veya mevcut olanları silin.
+- Silme işlemi için onay mesajlarını takip edin.
 
 
-components/: Yeniden kullanılabilir UI bileşenleri.
-screens/: Uygulamanın farklı ekranları.
-services/: Veri alma ve manipülasyon işlemleri için backend servis entegrasyonları.
-shared/: Paylaşılan sabitler ve yardımcı fonksiyonlar.
-Katkıda Bulunma
+## Proje Yapısı
+
+- **components/**: Yeniden kullanılabilir UI bileşenleri.
+- **screens/**: Uygulamanın farklı ekranları.
+- **services/**: Veri alma ve manipülasyon işlemleri için backend servis entegrasyonları.
+- **shared/**: Paylaşılan sabitler ve yardımcı fonksiyonlar.
+
+## Katkıda Bulunma
+
 Katkılarınızı bekliyoruz! Katkıda bulunmak için aşağıdaki adımları takip edin:
 
-Depoyu Forklayın
+### Depoyu Forklayın
 
 Yeni Bir Dal Oluşturun
 
-bash
-Kodu kopyala
+```console
 git checkout -b ozellik/ozellik-adi
+```
+
 Değişiklikleri Yapın
 
 Değişiklikleri Commit Edin
 
-bash
-Kodu kopyala
+```console
 git commit -m "Bir özellik ekle"
+```
+
 Dalınıza Push Edin
 
-bash
-Kodu kopyala
+```console
 git push origin ozellik/ozellik-adi
+```
+
 Bir Pull Request Açın
 
 Lütfen kodunuzun proje kodlama standartlarına uygun olduğundan ve tüm linting kontrollerini geçtiğinden emin olun.
 
-Lisans
-Bu proje MIT Lisansı altında lisanslanmıştır.
+## Lisans
+
+Bu proje Halka Açık bir koddur faydalanabilirsiniz.
 
 Halil ibrahim Aksoy❤️ ile geliştirildi
