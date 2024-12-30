@@ -9,6 +9,7 @@ import PatientsScreen from '../pages/PatientsScreen';
 import AddTestScreen from '../pages/AddTestScreen';
 import ShowUserTestsScreen from '../pages/ShowUserTestsScreen';
 import FastSearch from '../pages/FastSearchScreen';
+import AddPatientScreen from '../pages/AddPatientScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -73,6 +74,13 @@ export default function AdminStack() {
         component={FastSearch}
         options={{ title: 'Hızlı Arama' }}
       />
+      <Stack.Screen
+        name="AddPatient"
+        component={AddPatientScreen}
+        options={{ title: 'Hasta Ekle' }}
+      />
+
+
 
     </Stack.Navigator>
   );

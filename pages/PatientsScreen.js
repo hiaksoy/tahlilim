@@ -1,3 +1,4 @@
+// PatientsScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -37,11 +38,17 @@ const PatientsScreen = () => {
     navigation.navigate('AddTest', { userId });
   };
 
+  const handleAddPatient = () => {
+    navigation.navigate('AddPatient');
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Hastalar</Text>
+        <TouchableOpacity style={styles.addPatientButton} onPress={handleAddPatient}>
+          <Text style={styles.addPatientButtonText}>Hasta Ekle</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -64,12 +71,10 @@ const PatientsScreen = () => {
                   Cinsiyet: {item.gender}
                 </Text>
                 <Text style={styles.userDetailText}>
-                  Tc Kimlik No: {item.tcNo}
+                  TC Kimlik No: {item.tcNo}
                 </Text>
 
                 <View style={styles.actionButtons}>
-      
-
                   <TouchableOpacity
                     style={styles.viewButton}
                     onPress={() => handleShowTests(item.id, item.birthDate)}
@@ -81,7 +86,7 @@ const PatientsScreen = () => {
                     style={styles.editButton}
                     onPress={() => handleAddTest(item.id)}
                   >
-                    <Text style={styles.viewButtonText}>Tahlil Ekle</Text>
+                    <Text style={styles.editButtonText}>Tahlil Ekle</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -196,7 +201,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 6,
     alignItems: 'center',
-    marginHorizontal: 5,
 
     // Gölge
     shadowColor: '#000',

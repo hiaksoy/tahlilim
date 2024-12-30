@@ -1,24 +1,100 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+// UserDashboard.js
+import React, { useState, useEffect, useContext } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator
+} from 'react-native';
 import { auth } from '../configs/firebase_config';
 import { signOut } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../configs/authContext';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { getAllUsers } from '../services/UsersService';
 
 export default function UserDashboard() {
-  const { setUser } = useContext(AuthContext); // AuthContext'ten setUser al
+  const { setUser } = useContext(AuthContext);
   const navigation = useNavigation();
-  const user = auth.currentUser; // Firebase'den mevcut kullanıcı bilgisi
+  const user = auth.currentUser;
+
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Firebase'den çıkış yap
-      setUser(null); // Kullanıcıyı sıfırla
+      await signOut(auth);
+      setUser(null);
     } catch (error) {
       Alert.alert('Çıkış Hatası', error.message || 'Çıkış yapılamadı.');
     }
   };
+
+  const fetchUserData = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const allUsers = await getAllUsers();
+      const currentUser = allUsers.find((u) => u.email === user.email);
+
+      if (currentUser) {
+        console.log('Kullanıcı Verileri:', currentUser);
+        setUserData(currentUser);
+      } else {
+        throw new Error('Kullanıcı verileri bulunamadı.');
+      }
+    } catch (error) {
+      console.error('Kullanıcı verileri alınırken hata:', error.message);
+      Alert.alert('Hata', error.message || 'Kullanıcı verileri alınamadı.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const handleNavigateToTests = () => {
+    if (!userData) {
+      Alert.alert('Hata', 'Kullanıcı verileri henüz yüklenmedi.');
+      return;
+    }
+    navigation.navigate('ShowUserTests', { userId: userData.id, birthDate: userData.birthDate });
+  };
+
+  const handleNavigateToProfile = () => {
+    if (!userData) {
+      Alert.alert('Hata', 'Kullanıcı verileri henüz yüklenmedi.');
+      return;
+    }
+    navigation.navigate('UserProfile', { userId: userData.id });
+  };
+
+  const handleNavigateToSettings = () => {
+    navigation.navigate('Settings');
+  };
+
+  const handleNavigateToNotifications = () => {
+    navigation.navigate('Notifications');
+  };
+
+  const handleNavigateToHelp = () => {
+    navigation.navigate('Help');
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#2F5D8E" />
+        <Text style={styles.loadingText}>Veriler yükleniyor...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -34,32 +110,28 @@ export default function UserDashboard() {
 
       {/* Grid Butonları */}
       <View style={styles.gridContainer}>
-        <TouchableOpacity style={styles.gridItem}>
-          <FontAwesome5 name="home" size={40} color="#fff" />
-          <Text style={styles.gridItemText}>Home</Text>
+        {/* "Analytics" Butonu "Tahlillerim" Olarak Değiştirildi */}
+        <TouchableOpacity style={styles.gridItem} onPress={handleNavigateToTests}>
+          <FontAwesome5 name="chart-bar" size={40} color="#fff" />
+          <Text style={styles.gridItemText}>Tahlillerim</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.gridItem}>
-          <FontAwesome5 name="user" size={40} color="#fff" />
+        <TouchableOpacity style={styles.gridItem} onPress={handleNavigateToProfile}>
+          <FontAwesome5 name="user-edit" size={40} color="#fff" />
           <Text style={styles.gridItemText}>Profile</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.gridItem}>
+        <TouchableOpacity style={styles.gridItem} onPress={handleNavigateToSettings}>
           <FontAwesome5 name="cog" size={40} color="#fff" />
           <Text style={styles.gridItemText}>Settings</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.gridItem}>
+        <TouchableOpacity style={styles.gridItem} onPress={handleNavigateToNotifications}>
           <FontAwesome5 name="bell" size={40} color="#fff" />
           <Text style={styles.gridItemText}>Notifications</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.gridItem}>
-          <FontAwesome5 name="chart-bar" size={40} color="#fff" />
-          <Text style={styles.gridItemText}>Analytics</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.gridItem}>
+        <TouchableOpacity style={styles.gridItem} onPress={handleNavigateToHelp}>
           <FontAwesome5 name="question-circle" size={40} color="#fff" />
           <Text style={styles.gridItemText}>Help</Text>
         </TouchableOpacity>
@@ -160,5 +232,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 16,
+    color: '#333',
   },
 });

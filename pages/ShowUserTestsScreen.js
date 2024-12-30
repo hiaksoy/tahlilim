@@ -1,5 +1,4 @@
-// ... diğer importlar ...
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,7 +11,8 @@ import {
 import { useRoute } from '@react-navigation/native';
 import { db } from '../configs/firebase_config';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
-import { getUserById } from '../services/UsersService';
+import { getUserById, getUserByEmail } from '../services/UsersService';
+import { AuthContext } from '../configs/authContext'; // AuthContext'i içeri aktardık
 
 const parseDateString = (dateString) => {
   if (!dateString) return null;
@@ -58,18 +58,24 @@ const ShowUserTestsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
   const [expandedTahliller, setExpandedTahliller] = useState({});
+  const [role, setRole] = useState(null); // Kullanıcı rolü
+  const [loadingRole, setLoadingRole] = useState(true); // Rolün yüklenme durumu
 
-  // 1) Data Fetch
+  // AuthContext'ten mevcut kullanıcıyı alıyoruz
+  const { user } = useContext(AuthContext); // AuthContext'ten kullanıcıyı alıyoruz
+
+  // 1) Data Fetch ve Rol Fetch
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) {
         setLoading(false);
+        setLoadingRole(false);
         return;
       }
       try {
         // Kullanıcı ismi:
-        const user = await getUserById(userId);
-        setUserName(`${user.name} ${user.surname}`);
+        const userData = await getUserById(userId);
+        setUserName(`${userData.name} ${userData.surname}`);
 
         // Kılavuzlar:
         const kilavuzSnap = await getDocs(collection(db, 'Kılavuzlar'));
@@ -88,14 +94,14 @@ const ShowUserTestsScreen = () => {
           }
         });
 
-        // createdAt’e göre azalan sırada (en yeni -> en eski)
+        // numuneAlmaZamani’na göre azalan sırada (en yeni -> en eski)
         tempTahliller.sort((a, b) => {
-          const dateA = a.createdAt?.seconds
-            ? a.createdAt.seconds * 1000
-            : new Date(a.createdAt || 0).getTime();
-          const dateB = b.createdAt?.seconds
-            ? b.createdAt.seconds * 1000
-            : new Date(b.createdAt || 0).getTime();
+          const dateA = a.numuneAlmaZamani?.seconds
+            ? a.numuneAlmaZamani.seconds * 1000
+            : new Date(a.numuneAlmaZamani || 0).getTime();
+          const dateB = b.numuneAlmaZamani?.seconds
+            ? b.numuneAlmaZamani.seconds * 1000
+            : new Date(b.numuneAlmaZamani || 0).getTime();
           return dateB - dateA; // Azalan sıralama
         });
 
@@ -108,8 +114,21 @@ const ShowUserTestsScreen = () => {
       }
     };
 
+    const fetchUserRole = async () => {
+      if (user) {
+        try {
+          const userRole = await getUserByEmail(user.email); // Rolü veritabanından al
+          setRole(userRole);
+        } catch (error) {
+          console.error('Kullanıcı rolü alınırken hata oluştu:', error);
+        }
+      }
+      setLoadingRole(false); // Yükleme tamamlandı
+    };
+
     fetchData();
-  }, [userId]);
+    fetchUserRole();
+  }, [userId, user]);
 
   // 2) Tüm Kılavuzları tarayarak, tetkikAd + sonucStr'ye uyan
   //    "durum" nesnelerinin array'ini döndürür.
@@ -164,7 +183,10 @@ const ShowUserTestsScreen = () => {
       if (olderTahlil.degerler && olderTahlil.degerler.length > 0) {
         for (let d of olderTahlil.degerler) {
           if (d.ad === tetkikAd) {
-            previousResults.push(d.sonuc);
+            previousResults.push({
+              sonuc: d.sonuc,
+              numuneAlmaZamani: olderTahlil.numuneAlmaZamani
+            });
             break;
           }
         }
@@ -195,7 +217,7 @@ const ShowUserTestsScreen = () => {
   };
 
   // 6) Loading
-  if (loading) {
+  if (loading || loadingRole) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#2F5D8E" />
@@ -218,27 +240,29 @@ const ShowUserTestsScreen = () => {
           renderItem={({ item }) => {
             return (
               <View style={styles.tahlilCard}>
-                {/* Sil Butonu */}
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => {
-                    Alert.alert(
-                      'Silme Onayı',
-                      'Bu tahlili silmek istediğinize emin misiniz?',
-                      [
-                        { text: 'İptal', style: 'cancel' },
-                        {
-                          text: 'Sil',
-                          style: 'destructive',
-                          onPress: () => handleDeleteTahlil(item.id)
-                        }
-                      ],
-                      { cancelable: true }
-                    );
-                  }}
-                >
-                  <Text style={styles.deleteButtonText}>Sil</Text>
-                </TouchableOpacity>
+                {/* Sil Butonu - Sadece admin ise göster */}
+                {role === 'admin' && (
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => {
+                      Alert.alert(
+                        'Silme Onayı',
+                        'Bu tahlili silmek istediğinize emin misiniz?',
+                        [
+                          { text: 'İptal', style: 'cancel' },
+                          {
+                            text: 'Sil',
+                            style: 'destructive',
+                            onPress: () => handleDeleteTahlil(item.id)
+                          }
+                        ],
+                        { cancelable: true }
+                      );
+                    }}
+                  >
+                    <Text style={styles.deleteButtonText}>Sil</Text>
+                  </TouchableOpacity>
+                )}
 
                 {/* Rapor Bilgileri */}
                 <Text style={styles.label}>
@@ -307,7 +331,7 @@ const ShowUserTestsScreen = () => {
                                   <Text style={styles.bold}>Önceki Sonuçlar:</Text>
                                   {previousResults.map((result, index) => (
                                     <Text key={index} style={styles.previousResultText}>
-                                      • {result}
+                                      • {result.sonuc} ({formatTimestamp(result.numuneAlmaZamani)})
                                     </Text>
                                   ))}
                                 </View>

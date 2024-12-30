@@ -96,3 +96,4 @@ export const getGuideById = async (id) => {
     throw new Error("Kılavuz alınırken hata oluştu.");
   }
 };
+

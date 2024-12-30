@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  Button, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  Alert, 
+  Platform 
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { addTahlil } from '../services/TahlillerService';
@@ -41,14 +51,14 @@ const AddTestScreen = ({ route }) => {
   // Bölüm Açılır/Kapanır Durumları
   const [showTahlilBilgileri, setShowTahlilBilgileri] = useState(false);
   const [showTarihSaatBilgileri, setShowTarihSaatBilgileri] = useState(false);
-  const [showDegerler, setShowDegerler] = useState(true);
+  const [showDegerler, setShowDegerler] = useState(true); // İlk başta açık gelsin
 
   // Dinamik Değer Sil/Ekle/Güncelle
   const removeDeger = (index) => {
     const updatedDegerler = degerler.filter((_, i) => i !== index);
     setDegerler(updatedDegerler);
   };
-  
+
   const addDeger = () => {
     setDegerler([...degerler, { ad: REFS[0], sonuc: '' }]);
   };
@@ -61,6 +71,11 @@ const AddTestScreen = ({ route }) => {
 
   // Formu Kaydet
   const handleSubmit = async () => {
+    if (degerler.length === 0) {
+      Alert.alert('Uyarı', 'En az bir değer ekleyin.');
+      return;
+    }
+
     try {
       await addTahlil(
         userId,
@@ -78,17 +93,29 @@ const AddTestScreen = ({ route }) => {
       navigation.goBack();
     } catch (error) {
       console.error('Hata:', error.message);
+      Alert.alert('Hata', 'Tahlil eklenirken bir hata oluştu.');
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Tahlil Ekle</Text>
+      <Text style={styles.title}>Tahlil Ekleme Sayfası</Text>
 
       {/* Tahlil Bilgileri */}
-      <TouchableOpacity onPress={() => setShowTahlilBilgileri(!showTahlilBilgileri)}>
-        <Text style={styles.sectionTitle}>Tahlil Bilgileri</Text>
-      </TouchableOpacity>
+      <View style={styles.sectionHeader}>
+        <TouchableOpacity 
+          style={styles.sectionHeaderTextContainer} 
+          onPress={() => setShowTahlilBilgileri(!showTahlilBilgileri)}
+        >
+          <Text style={styles.sectionHeaderText}>Tahlil Bilgileri</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => setShowTahlilBilgileri(!showTahlilBilgileri)}
+        >
+          <Text style={styles.toggleButtonText}>{showTahlilBilgileri ? '-' : '+'}</Text>
+        </TouchableOpacity>
+      </View>
       {showTahlilBilgileri && (
         <View style={styles.section}>
           <TextInput
@@ -119,20 +146,37 @@ const AddTestScreen = ({ route }) => {
       )}
 
       {/* Tarih ve Saat Bilgileri */}
-      <TouchableOpacity onPress={() => setShowTarihSaatBilgileri(!showTarihSaatBilgileri)}>
-        <Text style={styles.sectionTitle}>Tarih ve Saat Bilgileri</Text>
-      </TouchableOpacity>
+      <View style={styles.sectionHeader}>
+        <TouchableOpacity 
+          style={styles.sectionHeaderTextContainer} 
+          onPress={() => setShowTarihSaatBilgileri(!showTarihSaatBilgileri)}
+        >
+          <Text style={styles.sectionHeaderText}>Tarih ve Saat Bilgileri</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => setShowTarihSaatBilgileri(!showTarihSaatBilgileri)}
+        >
+          <Text style={styles.toggleButtonText}>{showTarihSaatBilgileri ? '-' : '+'}</Text>
+        </TouchableOpacity>
+      </View>
       {showTarihSaatBilgileri && (
         <View style={styles.section}>
           {/* Tetkik İstem Zamanı */}
-          <TouchableOpacity
-            onPress={() => setShowTetkikDatePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Tetkik İstem Tarihi: {tetkikIstemZamani.toLocaleDateString()}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.dateTimeRow}>
+            <TouchableOpacity
+              onPress={() => setShowTetkikDatePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Tetkik İstem Tarihi: {tetkikIstemZamani.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowTetkikTimePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Tetkik İstem Saati: {tetkikIstemZamani.toLocaleTimeString()}</Text>
+            </TouchableOpacity>
+          </View>
           {showTetkikDatePicker && (
             <DateTimePicker
               value={tetkikIstemZamani}
@@ -144,15 +188,6 @@ const AddTestScreen = ({ route }) => {
               }}
             />
           )}
-
-          <TouchableOpacity
-            onPress={() => setShowTetkikTimePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Tetkik İstem Saati: {tetkikIstemZamani.toLocaleTimeString()}
-            </Text>
-          </TouchableOpacity>
           {showTetkikTimePicker && (
             <DateTimePicker
               value={tetkikIstemZamani}
@@ -166,14 +201,20 @@ const AddTestScreen = ({ route }) => {
           )}
 
           {/* Numune Alma Zamanı */}
-          <TouchableOpacity
-            onPress={() => setShowNumuneAlmaDatePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Numune Alma Tarihi: {numuneAlmaZamani.toLocaleDateString()}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.dateTimeRow}>
+            <TouchableOpacity
+              onPress={() => setShowNumuneAlmaDatePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Numune Alma Tarihi: {numuneAlmaZamani.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowNumuneAlmaTimePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Numune Alma Saati: {numuneAlmaZamani.toLocaleTimeString()}</Text>
+            </TouchableOpacity>
+          </View>
           {showNumuneAlmaDatePicker && (
             <DateTimePicker
               value={numuneAlmaZamani}
@@ -185,15 +226,6 @@ const AddTestScreen = ({ route }) => {
               }}
             />
           )}
-
-          <TouchableOpacity
-            onPress={() => setShowNumuneAlmaTimePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Numune Alma Saati: {numuneAlmaZamani.toLocaleTimeString()}
-            </Text>
-          </TouchableOpacity>
           {showNumuneAlmaTimePicker && (
             <DateTimePicker
               value={numuneAlmaZamani}
@@ -207,14 +239,20 @@ const AddTestScreen = ({ route }) => {
           )}
 
           {/* Numune Kabul Zamanı */}
-          <TouchableOpacity
-            onPress={() => setShowNumuneKabulDatePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Numune Kabul Tarihi: {numuneKabulZamani.toLocaleDateString()}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.dateTimeRow}>
+            <TouchableOpacity
+              onPress={() => setShowNumuneKabulDatePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Numune Kabul Tarihi: {numuneKabulZamani.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowNumuneKabulTimePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Numune Kabul Saati: {numuneKabulZamani.toLocaleTimeString()}</Text>
+            </TouchableOpacity>
+          </View>
           {showNumuneKabulDatePicker && (
             <DateTimePicker
               value={numuneKabulZamani}
@@ -226,15 +264,6 @@ const AddTestScreen = ({ route }) => {
               }}
             />
           )}
-
-          <TouchableOpacity
-            onPress={() => setShowNumuneKabulTimePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Numune Kabul Saati: {numuneKabulZamani.toLocaleTimeString()}
-            </Text>
-          </TouchableOpacity>
           {showNumuneKabulTimePicker && (
             <DateTimePicker
               value={numuneKabulZamani}
@@ -248,14 +277,20 @@ const AddTestScreen = ({ route }) => {
           )}
 
           {/* Uzman Onay Zamanı */}
-          <TouchableOpacity
-            onPress={() => setShowUzmanOnayDatePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Uzman Onay Tarihi: {uzmanOnayZamani.toLocaleDateString()}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.dateTimeRow}>
+            <TouchableOpacity
+              onPress={() => setShowUzmanOnayDatePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Uzman Onay Tarihi: {uzmanOnayZamani.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowUzmanOnayTimePicker(true)}
+              style={styles.dateTimePicker}
+            >
+              <Text>Uzman Onay Saati: {uzmanOnayZamani.toLocaleTimeString()}</Text>
+            </TouchableOpacity>
+          </View>
           {showUzmanOnayDatePicker && (
             <DateTimePicker
               value={uzmanOnayZamani}
@@ -267,15 +302,6 @@ const AddTestScreen = ({ route }) => {
               }}
             />
           )}
-
-          <TouchableOpacity
-            onPress={() => setShowUzmanOnayTimePicker(true)}
-            style={styles.datePicker}
-          >
-            <Text>
-              Uzman Onay Saati: {uzmanOnayZamani.toLocaleTimeString()}
-            </Text>
-          </TouchableOpacity>
           {showUzmanOnayTimePicker && (
             <DateTimePicker
               value={uzmanOnayZamani}
@@ -291,9 +317,20 @@ const AddTestScreen = ({ route }) => {
       )}
 
       {/* Dinamik Değerler */}
-      <TouchableOpacity onPress={() => setShowDegerler(!showDegerler)}>
-        <Text style={styles.sectionTitle}>Değerler</Text>
-      </TouchableOpacity>
+      <View style={styles.sectionHeader}>
+        <TouchableOpacity 
+          style={styles.sectionHeaderTextContainer} 
+          onPress={() => setShowDegerler(!showDegerler)}
+        >
+          <Text style={styles.sectionHeaderText}>Değerler</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => setShowDegerler(!showDegerler)}
+        >
+          <Text style={styles.toggleButtonText}>{showDegerler ? '-' : '+'}</Text>
+        </TouchableOpacity>
+      </View>
       {showDegerler && (
         <View style={styles.section}>
           {degerler.map((deger, index) => (
@@ -323,7 +360,9 @@ const AddTestScreen = ({ route }) => {
               </TouchableOpacity>
             </View>
           ))}
-          <Button title="Değer Ekle" onPress={addDeger} />
+          <TouchableOpacity style={styles.addValueButton} onPress={addDeger}>
+            <Text style={styles.addValueButtonText}>Aranacak Değer Sayısını Arttır</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -344,7 +383,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F3F8FE' // Pastel mavi arkaplan
+    backgroundColor: '#F3F8FE', // Pastel mavi arkaplan
   },
   title: {
     fontSize: 24,
@@ -361,23 +400,35 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3.5,
-    elevation: 3
+    elevation: 3,
   },
-  sectionTitle: {
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10, // Bölümler arası boşluk
+  },
+  sectionHeaderTextContainer: {
+    flex: 1,
+  },
+  sectionHeaderText: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#4CAF50',
-    backgroundColor: '#e0f7fa',
-    padding: 8,
-    borderRadius: 5,
-    // Gölge
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2,
-    marginTop: 10
+    color: '#2F5D8E',
+  },
+  toggleButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#28a745',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10, // Buton ile metin arasına boşluk
+  },
+  toggleButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   section: {
     marginBottom: 20,
@@ -390,7 +441,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 2
+    elevation: 2,
   },
   input: {
     borderWidth: 1,
@@ -405,26 +456,27 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 1.5,
-    elevation: 1
+    elevation: 1,
   },
-  datePicker: {
+  dateTimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  dateTimePicker: {
+    flex: 1,
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    marginBottom: 10,
+    marginRight: 5,
     backgroundColor: '#fafafa',
 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1.5 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 1
-  },
-  dynamicRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10
+    elevation: 1,
   },
   pickerContainer: {
     flex: 1,
@@ -433,7 +485,12 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
+  },
+  dynamicRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   dynamicInput: {
     flex: 1,
@@ -441,7 +498,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   deleteButton: {
     backgroundColor: '#f44336',
@@ -457,12 +514,31 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.15,
     shadowRadius: 2,
-    elevation: 2
+    elevation: 2,
   },
   deleteButtonText: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold'
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  addValueButton: {
+    marginTop: 8,
+    backgroundColor: '#5A8FCB',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+
+    // Gölge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.5,
+    elevation: 3,
+  },
+  addValueButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   saveButton: {
     backgroundColor: '#388e3c',
@@ -476,11 +552,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3.5,
-    elevation: 3
+    elevation: 3,
   },
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700'
-  }
+    fontWeight: '700',
+  },
 });
