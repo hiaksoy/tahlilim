@@ -5,7 +5,7 @@ import { getGuideById } from '../services/GuidesService';
 import { removeValueFromRef } from '../services/ValuesService';
 import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 
-const EditGuideScreen = ({ route, navigation }) => {
+const EditRefScreen = ({ route, navigation }) => {
   const { guideId, refName } = route.params;
 
   const [minAge, setMinAge] = useState('');
@@ -116,7 +116,13 @@ const EditGuideScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Kılavuz Düzenle</Text>
+        {/* Kılavuz Düzenle başlığını TouchableOpacity ile sararak tıklanabilir hale getirdik */}
+        <TouchableOpacity
+          onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}
+          style={{ flex: 1 }}
+        >
+          <Text style={styles.title}>Referans Aralık Ekle</Text>
+        </TouchableOpacity>
 
         {/* Kılavuz Düzenle yuvarlak butonu */}
         <TouchableOpacity
@@ -203,7 +209,7 @@ const EditGuideScreen = ({ route, navigation }) => {
             <Text style={styles.tableValue}>
               {item.minAge < 12 && item.maxAge < 12
                 ? `${item.minAge} - ${item.maxAge} Aylık`
-                : `${item.minAge >= 12 ? item.minAge / 12 : item.minAge} - ${item.maxAge >= 12 ? item.maxAge / 12 : item.maxAge
+                : `${item.minAge >= 12 ? (item.minAge / 12).toFixed(1) : item.minAge} - ${item.maxAge >= 12 ? (item.maxAge / 12).toFixed(1) : item.maxAge
                 } Yaşlarında (${item.minAge} - ${item.maxAge} Aylık)`}
             </Text>
 
@@ -252,7 +258,7 @@ const EditGuideScreen = ({ route, navigation }) => {
   );
 };
 
-export default EditGuideScreen;
+export default EditRefScreen;
 
 // ---------------------------------------------------------------------
 // STYLES
@@ -273,7 +279,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#2F5D8E',
-    flex: 1,
   },
   circleButton: {
     width: 44,

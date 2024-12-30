@@ -260,7 +260,7 @@ export default function FastSearch() {
   return (
     <View style={styles.container}>
       {/* Hızlı Arama Başlığı */}
-      <Text style={styles.sectionTitle}>Hızlı Arama</Text>
+      <Text style={styles.sectionTitle}>Hızlı Tetkik Sonucu Sorgulama</Text>
 
       {/* Doğum Tarihi Seçme */}
       <View style={styles.section}>

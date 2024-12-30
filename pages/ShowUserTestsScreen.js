@@ -1,3 +1,4 @@
+// ShowUserTestsScreen.js
 import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
@@ -314,6 +315,28 @@ const ShowUserTestsScreen = () => {
                           const durumArray = getAllDurum(d.ad, d.sonuc);
                           const previousResults = getPreviousResults(d.ad, item.id);
 
+                          // Sonuç değişimini hesaplama
+                          const currentResult = parseCommaFloat(d.sonuc);
+                          const previousResult = previousResults[0]
+                            ? parseCommaFloat(previousResults[0].sonuc)
+                            : null;
+
+                          let changeText = '';
+                          let arrow = '';
+
+                          if (previousResult !== null) {
+                            if (currentResult > previousResult) {
+                              changeText = 'bir önceki sonuca göre yükselmiştir';
+                              arrow = '↑';
+                            } else if (currentResult < previousResult) {
+                              changeText = 'bir önceki sonuca göre düşmüştür';
+                              arrow = '↓';
+                            } else {
+                              changeText = 'aynı kalmıştır';
+                              arrow = '↔';
+                            }
+                          }
+
                           return (
                             // (A) "sonucGroupCard": Tüm Tetkik Adı / Sonuç / Önceki Sonuçlar / Durum(lar) 
                             <View key={idx} style={styles.sonucGroupCard}>
@@ -323,6 +346,7 @@ const ShowUserTestsScreen = () => {
                               </Text>
                               <Text style={styles.sonucText}>
                                 <Text style={styles.bold}>Sonuç:</Text> {d.sonuc}
+                                {changeText ? ` (${changeText} ${arrow})` : ''}
                               </Text>
 
                               {/* Önceki Sonuçlar */}

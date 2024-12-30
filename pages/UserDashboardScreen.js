@@ -6,7 +6,8 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  StatusBar
 } from 'react-native';
 import { auth } from '../configs/firebase_config';
 import { signOut } from 'firebase/auth';
@@ -98,6 +99,13 @@ export default function UserDashboard() {
 
   return (
     <View style={styles.container}>
+
+      {/* Status Bar Ayarları */}
+      <StatusBar
+        backgroundColor="#F3F8FE" // Arka plan rengi pastel mavi
+        barStyle="dark-content" // İçerik rengi koyu (açık arka plan için)
+      />
+
       <Text style={styles.title}>Hoşgeldiniz</Text>
       {user && (
         <View style={styles.userInfoContainer}>

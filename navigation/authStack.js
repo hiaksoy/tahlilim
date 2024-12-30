@@ -7,7 +7,18 @@ const Stack = createNativeStackNavigator();
 
 export default function AuthStack() {
   return (
-    <Stack.Navigator initialRouteName="Login">
+    <Stack.Navigator
+    initialRouteName="Login"
+    screenOptions={{
+      headerStyle: {
+        backgroundColor: '#F3F8FE',
+      },
+      headerTintColor: '#000',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
+    }}
+  >
       <Stack.Screen
         name="Login"
         component={LoginScreen}

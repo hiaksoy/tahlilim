@@ -136,7 +136,7 @@ const EditGuideScreen = ({ route, navigation }) => {
           style={styles.headerButton}
           onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}
         >
-          <Text style={styles.headerTitle}>Kılavuzu Düzenle</Text>
+          <Text style={styles.headerTitle}>Mevcut Kılavuzu Düzenle</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -188,7 +188,7 @@ const EditGuideScreen = ({ route, navigation }) => {
           style={styles.headerButton}
           onPress={() => setIsValueFormVisible(!isValueFormVisible)}
         >
-          <Text style={styles.headerTitle}>Değer Ekle</Text>
+          <Text style={styles.headerTitle}>Kılavuza Referans Ekle</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -216,7 +216,7 @@ const EditGuideScreen = ({ route, navigation }) => {
           </View>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleAddRef}>
-            <Text style={styles.saveButtonText}>Değer Ekle</Text>
+            <Text style={styles.saveButtonText}>Referans Ekle</Text>
           </TouchableOpacity>
         </View>
       )}

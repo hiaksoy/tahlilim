@@ -83,7 +83,7 @@ const GuidesScreen = () => {
           style={styles.headerButton}
           onPress={() => setIsGuideFormVisible(!isGuideFormVisible)}
         >
-          <Text style={styles.headerTitle}>Kılavuz Ekle</Text>
+          <Text style={styles.headerTitle}>Yeni Bir Kılavuz Ekle</Text>
         </TouchableOpacity>
 
         {/* (1) + Butonu Yeşil */}
