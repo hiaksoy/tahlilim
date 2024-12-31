@@ -1,3 +1,5 @@
+// navigation/rootnavigation.js
+
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import AdminStack from './adminStack';

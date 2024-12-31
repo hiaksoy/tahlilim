@@ -1,14 +1,16 @@
 // screens/FastSearchScreen.js
 
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import FastSearch from '../components/FastSearch';
 
 export default function FastSearchScreen() {
   return (
-    <View style={styles.container}>
-      <FastSearch />
-    </View>
+    <ScrollView>
+      <View style={styles.container}>
+        <FastSearch />
+      </View>
+    </ScrollView>
   );
 }
 
